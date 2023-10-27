@@ -1,3 +1,5 @@
+// ignore_for_file: file_names
+
 class Pair<E, F> {
   E first;
   F last;
