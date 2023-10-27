@@ -49,11 +49,11 @@ class _MainViewState extends State<MainView> {
                   } else {
                     print('something is null: $inputs, $newInput');
                   }
-                  await controller.storeInputs(inputs);
+                  //await controller.storeInputs(inputs);
                   print('inputs stored');
-                  List<String>? tempInputs = await controller.getInputs();
+                  //List<String>? tempInputs = await controller.getInputs();
                   setState(() {
-                    inputs = tempInputs;
+                    //inputs = tempInputs;
                   });
                 },
                 child: const Text("Submit"),
@@ -62,8 +62,8 @@ class _MainViewState extends State<MainView> {
               FutureBuilder(
                 future: Future(() async {
                   setState(() async {
-                    inputs = await controller.getInputs() ??
-                        List<String>.empty(growable: true);
+                    //inputs = await controller.getInputs() ??
+                    List<String>.empty(growable: true);
                   });
                 }),
                 builder: (BuildContext context, AsyncSnapshot snapshot) {
