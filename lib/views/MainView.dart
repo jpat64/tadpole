@@ -46,11 +46,8 @@ class _MainViewState extends State<MainView> {
                 onPressed: () async {
                   if (newInput != null && inputs != null) {
                     inputs!.add(newInput!);
-                  } else {
-                    print('something is null: $inputs, $newInput');
                   }
                   //await controller.storeInputs(inputs);
-                  print('inputs stored');
                   //List<String>? tempInputs = await controller.getInputs();
                   setState(() {
                     //inputs = tempInputs;
