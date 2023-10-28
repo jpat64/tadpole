@@ -4,6 +4,7 @@ An app to track frog growth cycles :).
 
 ## Getting Started
 
+1. Fork and clone tadpole with Git Bash or other preferred git interface
 1. Download flutter from [here](https://docs.flutter.dev/get-started/install/windows)
 1. Extract the zip file and save it somewhere you will remember
 1. Add flutter to your Path
@@ -24,7 +25,7 @@ An app to track frog growth cycles :).
     1. If prompted, run "flutter doctor --android-licenses" (no quotations). Reply "y" (no quotations) to the option to Review licenses that have not been accepted, and accept all.
 1. Re-run "flutter doctor" (no quotations). At this point, you should receive all green checkmarks (please do not @ me if you are red/green colorblind).
 1. Re-run "flutter run" (no quotations). The project should start.
-    1. If this is not the case, return to the Path variable from step 3ii.
+    1. If this is not the case, return to the Path variable from step 4ii.
         1. Add the path to the git executable (i.e. if Git is stored at D:\dev\Git, add D:\dev\Git\bin\git.exe).
         1. Add the path to the git command folder (i.e. if Git is stored at D:\dev\Git, add D:\dev\Git\cmd).
         1. Add the path to the Windows system (i.e. C:\Windows\System32).
