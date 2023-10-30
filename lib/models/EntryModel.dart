@@ -60,7 +60,7 @@ class Entry {
 
   Map<String, dynamic> toJson() => {
         "cycle": cycle,
-        "date": date,
+        "date": date.toIso8601String(),
         "bleeding": bleeding,
         "flow": flow,
         "pain": pain,
@@ -70,17 +70,18 @@ class Entry {
       };
 
   String compress() {
-    Map<String, dynamic> json = toJson();
-    String jsonString = json.toString();
-    List<int> utfEncoded = utf8.encode(jsonString);
-    List<int> gzipEncoded = gzip.encode(utfEncoded);
-    String base64Encoded = base64.encode(gzipEncoded);
-    return base64Encoded;
+    Map<String, dynamic> jsonMap = toJson();
+    String jsonString = json.encode(jsonMap);
+    //List<int> utfEncoded = utf8.encode(jsonString);
+    //List<int> gzipEncoded = gzip.encode(utfEncoded);
+    //String base64Encoded = base64.encode(gzipEncoded);
+    print('storing: $jsonString');
+    return jsonString;
   }
 
   Entry.fromJson(Map<String, dynamic> json)
       : cycle = json['cycle'] as int,
-        date = json['date'] as DateTime,
+        date = DateTime.parse(json['date']),
         bleeding = json['bleeding'] as bool,
         flow = json['flow'] as int?,
         pain = json['pain'] as int?,
@@ -89,10 +90,11 @@ class Entry {
         id = json['id'] as int;
 
   static Entry decompress(String encodedString) {
-    List<int> base64Decoded = base64.decode(encodedString);
-    List<int> gzipDecoded = gzip.decode(base64Decoded);
-    String utfDecoded = utf8.decode(gzipDecoded);
-    Map<String, dynamic> jsonObject = json.decode(utfDecoded);
+    //List<int> base64Decoded = base64.decode(encodedString);
+    //List<int> gzipDecoded = gzip.decode(base64Decoded);
+    //String utfDecoded = utf8.decode(gzipDecoded);
+    print('reading: $encodedString');
+    Map<String, dynamic> jsonObject = json.decode(encodedString);
     return Entry.fromJson(jsonObject);
   }
 
@@ -126,10 +128,10 @@ class Activity {
   String compress() {
     Map<String, dynamic> json = toJson();
     String jsonString = json.toString();
-    List<int> utfEncoded = utf8.encode(jsonString);
-    List<int> gzipEncoded = gzip.encode(utfEncoded);
-    String base64Encoded = base64.encode(gzipEncoded);
-    return base64Encoded;
+    //List<int> utfEncoded = utf8.encode(jsonString);
+    //List<int> gzipEncoded = gzip.encode(utfEncoded);
+    //String base64Encoded = base64.encode(gzipEncoded);
+    return jsonString;
   }
 
   Activity.fromJson(Map<String, dynamic> json)
@@ -137,10 +139,10 @@ class Activity {
         text = json['text'] as String;
 
   static Activity decompress(String encodedString) {
-    List<int> base64Decoded = base64.decode(encodedString);
-    List<int> gzipDecoded = gzip.decode(base64Decoded);
-    String utfDecoded = utf8.decode(gzipDecoded);
-    Map<String, dynamic> jsonObject = json.decode(utfDecoded);
+    //List<int> base64Decoded = base64.decode(encodedString);
+    //List<int> gzipDecoded = gzip.decode(base64Decoded);
+    //String utfDecoded = utf8.decode(gzipDecoded);
+    Map<String, dynamic> jsonObject = json.decode(encodedString);
     return Activity.fromJson(jsonObject);
   }
 
@@ -177,10 +179,10 @@ class Symptom {
   String compress() {
     Map<String, dynamic> json = toJson();
     String jsonString = json.toString();
-    List<int> utfEncoded = utf8.encode(jsonString);
-    List<int> gzipEncoded = gzip.encode(utfEncoded);
-    String base64Encoded = base64.encode(gzipEncoded);
-    return base64Encoded;
+    // List<int> utfEncoded = utf8.encode(jsonString);
+    // List<int> gzipEncoded = gzip.encode(utfEncoded);
+    // String base64Encoded = base64.encode(gzipEncoded);
+    return jsonString;
   }
 
   Symptom.fromJson(Map<String, dynamic> json)
@@ -188,10 +190,10 @@ class Symptom {
         text = json['text'] as String;
 
   static Symptom decompress(String encodedString) {
-    List<int> base64Decoded = base64.decode(encodedString);
-    List<int> gzipDecoded = gzip.decode(base64Decoded);
-    String utfDecoded = utf8.decode(gzipDecoded);
-    Map<String, dynamic> jsonObject = json.decode(utfDecoded);
+    //List<int> base64Decoded = base64.decode(encodedString);
+    //List<int> gzipDecoded = gzip.decode(base64Decoded);
+    //String utfDecoded = utf8.decode(gzipDecoded);
+    Map<String, dynamic> jsonObject = json.decode(encodedString);
     return Symptom.fromJson(jsonObject);
   }
 

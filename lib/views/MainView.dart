@@ -1,7 +1,7 @@
 // ignore_for_file: file_names
 
 import 'package:flutter/material.dart';
-import 'package:tadpole/controllers/MainController.dart';
+import 'package:tadpole/controllers/TodayController.dart';
 
 class MainView extends StatefulWidget {
   const MainView({super.key});
@@ -13,7 +13,7 @@ class MainView extends StatefulWidget {
 class _MainViewState extends State<MainView> {
   final GlobalKey<FormState> _key = GlobalKey();
 
-  MainController controller = MainController();
+  TodayController controller = TodayController();
 
   List<String>? inputs;
   String? newInput;

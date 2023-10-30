@@ -22,16 +22,20 @@ import 'package:tadpole/services/Pair.dart';
 */
 
 class StorageService {
-  final String SYMPTOMS = "tadpole_symptoms";
-  final String ACTIVITIES = "tadpole_activities";
-  final String ENTRIES = "tadpole_entries";
-  final String ENTRY_SYMPTOMS = "tadpole_entries_symptoms";
-  final String ENTRY_ACTIVITIES = "tadpole_entries_activities";
+  static String SYMPTOMS = "tadpole_symptoms";
+  static String ACTIVITIES = "tadpole_activities";
+  static String ENTRIES = "tadpole_entries";
+  static String ENTRY_SYMPTOMS = "tadpole_entries_symptoms";
+  static String ENTRY_ACTIVITIES = "tadpole_entries_activities";
+  static String NEXT_ENTRY_ID = "tadpole_next_entry_id";
+  static String NEXT_SYMPTOM_ID = "tadpole_next_symptom_id";
+  static String NEXT_ACTIVITY_ID = "tadpole_next_activity_id";
+  static String NEXT_CYCLE_NUMBER = "tadpole_next_cycle_number";
 
   // helper method to one-line and un-null table results
   Future<List<String>> getTable(String tableName) async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getStringList(tableName) ?? List<String>.empty();
+    return prefs.getStringList(tableName) ?? List<String>.empty(growable: true);
   }
 
   // helper method to one-line and un-try/catch table sets
@@ -42,6 +46,21 @@ class StorageService {
       return true;
     } catch (e) {
       throw Exception("Error writing table $tableName: $e");
+    }
+  }
+
+  Future<int> getStoredInt(String variableName) async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(variableName) ?? 0;
+  }
+
+  Future<bool> clearEntries() async {
+    final prefs = await SharedPreferences.getInstance();
+    try {
+      prefs.setStringList(ENTRIES, List<String>.empty(growable: true));
+      return true;
+    } catch (e) {
+      throw Exception("could not clear Entries: $e");
     }
   }
 
@@ -155,9 +174,9 @@ class StorageService {
         HashMap.fromIterable(compressedEntries.map<Entry>((element) {
       return Entry.decompress(element);
     }), key: (element) {
-      return Entry.decompress(element).id;
+      return (element as Entry).id;
     }, value: (element) {
-      return Entry.decompress(element);
+      return element as Entry;
     });
 
     List<String> compressedSymptoms = await getTable(SYMPTOMS);
