@@ -5,6 +5,7 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tadpole/models/EntryModel.dart';
+import 'package:tadpole/models/ThemeModel.dart';
 import 'package:tadpole/services/Pair.dart';
 
 /*
@@ -31,6 +32,8 @@ class StorageService {
   static String NEXT_SYMPTOM_ID = "tadpole_next_symptom_id";
   static String NEXT_ACTIVITY_ID = "tadpole_next_activity_id";
   static String NEXT_CYCLE_NUMBER = "tadpole_next_cycle_number";
+  static String PREFERENCES = "tadpole_preferences";
+  static String THEMES = "tadpole_themes";
 
   // helper method to one-line and un-null table results
   Future<List<String>> getTable(String tableName) async {
@@ -54,6 +57,11 @@ class StorageService {
     return prefs.getInt(variableName) ?? 0;
   }
 
+  Future<String> getStoredString(String variableName) async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(variableName) ?? "";
+  }
+
   Future<bool> clearEntries() async {
     final prefs = await SharedPreferences.getInstance();
     try {
@@ -62,6 +70,17 @@ class StorageService {
     } catch (e) {
       throw Exception("could not clear Entries: $e");
     }
+  }
+
+  Future<Map<int, ThemeModel>> getThemes() async {
+    List<String> rawThemes = await getTable(THEMES);
+    return {
+      for (var element in rawThemes.map<ThemeModel>((element) {
+        Map<String, dynamic> elementJson = json.decode(element);
+        return ThemeModel.fromJson(elementJson);
+      }))
+        (element as ThemeModel).id: element as ThemeModel
+    };
   }
 
   // CREATE because we don't support edit for MVP yet

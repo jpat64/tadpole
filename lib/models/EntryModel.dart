@@ -2,7 +2,6 @@
 
 import 'package:decimal/decimal.dart';
 import 'dart:convert';
-import 'dart:io';
 
 class Entry {
   int cycle;
@@ -75,7 +74,6 @@ class Entry {
     //List<int> utfEncoded = utf8.encode(jsonString);
     //List<int> gzipEncoded = gzip.encode(utfEncoded);
     //String base64Encoded = base64.encode(gzipEncoded);
-    print('storing: $jsonString');
     return jsonString;
   }
 
@@ -93,7 +91,6 @@ class Entry {
     //List<int> base64Decoded = base64.decode(encodedString);
     //List<int> gzipDecoded = gzip.decode(base64Decoded);
     //String utfDecoded = utf8.decode(gzipDecoded);
-    print('reading: $encodedString');
     Map<String, dynamic> jsonObject = json.decode(encodedString);
     return Entry.fromJson(jsonObject);
   }
