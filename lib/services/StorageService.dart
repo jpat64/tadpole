@@ -79,7 +79,7 @@ class StorageService {
         Map<String, dynamic> elementJson = json.decode(element);
         return ThemeModel.fromJson(elementJson);
       }))
-        (element as ThemeModel).id: element as ThemeModel
+        (element).id: element
     };
   }
 

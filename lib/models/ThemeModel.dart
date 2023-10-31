@@ -13,6 +13,10 @@ class ThemeModel {
     );
   }
 
+  static ThemeModel base({id = 0, bleedingQuestion = "Are you bleeding?"}) {
+    return ThemeModel(id: id, bleedingQuestion: bleedingQuestion);
+  }
+
   Map<String, dynamic> toJson() {
     return {
       "id": id,

@@ -2,6 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:tadpole/controllers/LoginController.dart';
+import 'package:tadpole/models/PreferencesModel.dart';
+import 'package:tadpole/models/ThemeModel.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -31,9 +33,22 @@ class _LoginViewState extends State<LoginView> {
         padding: const EdgeInsets.all(20),
         child: Form(
           key: _key,
-          child: const Column(
+          child: Column(
             children: [
-              Text("Welcome to Tadpole!"),
+              const Text("Welcome to Tadpole!"),
+              ElevatedButton(
+                onPressed: () async {
+                  PreferencesModel preferences =
+                      await controller.getPreferences();
+                  ThemeModel selectedTheme =
+                      await controller.getTheme(preferences.themeId);
+                  if (preferences.loginType == LoginType.none) {
+                    if (!mounted) return;
+                    Navigator.pushNamed(context, "/today");
+                  }
+                },
+                child: const Text("Continue"),
+              ),
             ],
           ),
         ),
