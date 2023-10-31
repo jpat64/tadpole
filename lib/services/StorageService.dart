@@ -1,7 +1,11 @@
-// ignore_for_file: file_names
+// ignore_for_file: file_names, non_constant_identifier_names
+
+import 'dart:collection';
+import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tadpole/models/EntryModel.dart';
+import 'package:tadpole/services/Pair.dart';
 
 /*
   "DB" Structure:
@@ -18,37 +22,65 @@ import 'package:tadpole/models/EntryModel.dart';
 */
 
 class StorageService {
-  Future<List<String>?> getInputs() async {
+  static String SYMPTOMS = "tadpole_symptoms";
+  static String ACTIVITIES = "tadpole_activities";
+  static String ENTRIES = "tadpole_entries";
+  static String ENTRY_SYMPTOMS = "tadpole_entries_symptoms";
+  static String ENTRY_ACTIVITIES = "tadpole_entries_activities";
+  static String NEXT_ENTRY_ID = "tadpole_next_entry_id";
+  static String NEXT_SYMPTOM_ID = "tadpole_next_symptom_id";
+  static String NEXT_ACTIVITY_ID = "tadpole_next_activity_id";
+  static String NEXT_CYCLE_NUMBER = "tadpole_next_cycle_number";
+
+  // helper method to one-line and un-null table results
+  Future<List<String>> getTable(String tableName) async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getStringList("tadpole_items");
+    return prefs.getStringList(tableName) ?? List<String>.empty(growable: true);
   }
 
-  // ADD because we don't support edit for MVP yet
+  // helper method to one-line and un-try/catch table sets
+  Future<bool> setTable(String tableName, List<String> table) async {
+    final prefs = await SharedPreferences.getInstance();
+    try {
+      prefs.setStringList(tableName, table);
+      return true;
+    } catch (e) {
+      throw Exception("Error writing table $tableName: $e");
+    }
+  }
+
+  Future<int> getStoredInt(String variableName) async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(variableName) ?? 0;
+  }
+
+  Future<bool> clearEntries() async {
+    final prefs = await SharedPreferences.getInstance();
+    try {
+      prefs.setStringList(ENTRIES, List<String>.empty(growable: true));
+      return true;
+    } catch (e) {
+      throw Exception("could not clear Entries: $e");
+    }
+  }
+
+  // CREATE because we don't support edit for MVP yet
   Future<bool> addEntry(Entry? entry) async {
     // step 0: null check & setup
     if (entry == null) {
       return false;
     }
 
-    final prefs = await SharedPreferences.getInstance();
     bool hasSymptoms = entry.symptoms?.isNotEmpty ?? false;
-    List<String> symptomsCompressed = hasSymptoms
-        ? prefs.getStringList("tadpole_symptoms") ??
-            List<String>.empty(growable: true)
-        : List<String>.empty();
-    List<String> entrySymptoms = hasSymptoms
-        ? prefs.getStringList("tadpole_entry_symptoms") ??
-            List<String>.empty(growable: true)
-        : List<String>.empty();
+    List<String> symptomsCompressed =
+        hasSymptoms ? await getTable(SYMPTOMS) : List<String>.empty();
+    List<String> entrySymptoms =
+        hasSymptoms ? await getTable(ENTRY_SYMPTOMS) : List<String>.empty();
     bool hasActivities = entry.activities?.isNotEmpty ?? false;
-    List<String> activitiesCompressed = hasActivities
-        ? prefs.getStringList("tadpole_activities") ??
-            List<String>.empty(growable: true)
-        : List<String>.empty();
-    List<String> entryActivities = hasActivities
-        ? prefs.getStringList("tadpole_entry_activities") ??
-            List<String>.empty(growable: true)
-        : List<String>.empty();
+    List<String> activitiesCompressed =
+        hasActivities ? await getTable(ACTIVITIES) : List<String>.empty();
+    List<String> entryActivities =
+        hasActivities ? await getTable(ENTRY_ACTIVITIES) : List<String>.empty();
 
     // step 1: get all symptoms and add any new ones
     // step 1a: only store if there exist symptoms on entry
@@ -105,8 +137,7 @@ class StorageService {
     String entryCompressed = entry.compress();
 
     // step 3b: get Entry list as list of decompressed Entrys
-    List<String> entriesCompressed = prefs.getStringList("tadpole_entries") ??
-        List<String>.empty(growable: true);
+    List<String> entriesCompressed = await getTable(ENTRIES);
     List<Entry> entriesDecompressed = entriesCompressed.map<Entry>((element) {
       return Entry.decompress(element);
     }).toList();
@@ -117,16 +148,17 @@ class StorageService {
       entriesDecompressed.add(entry);
       try {
         // step 3d: store everything- entry, then symptoms, then entry-symptoms, then activities, then entry-activities
-        prefs.setStringList("tadpole_entries", entriesCompressed);
+        bool success = true;
+        success = success | await setTable(ENTRIES, entriesCompressed);
         if (hasSymptoms) {
-          prefs.setStringList("tadpole_symptoms", symptomsCompressed);
-          prefs.setStringList("tadpole_entry_symptoms", entrySymptoms);
+          success = success | await setTable(SYMPTOMS, symptomsCompressed);
+          success = success | await setTable(ENTRY_SYMPTOMS, entrySymptoms);
         }
         if (hasActivities) {
-          prefs.setStringList("tadpole_activities", activitiesCompressed);
-          prefs.setStringList("tadpole_entry_activities", entryActivities);
+          success = success | await setTable(ACTIVITIES, activitiesCompressed);
+          success = success | await setTable(ENTRY_ACTIVITIES, entryActivities);
         }
-        return true;
+        return success;
       } catch (e) {
         throw Exception("error saving new entry $entry: $e");
       }
@@ -134,17 +166,79 @@ class StorageService {
     return false;
   }
 
-  Future<bool> storeInputs(List<String>? inputs) async {
-    if (inputs == null) {
-      return false;
+  // READ all entries from local storage
+  Future<List<Entry>> getEntries() async {
+    // Step 1: read all of the storage into the right maps/lists
+    List<String> compressedEntries = await getTable(ENTRIES);
+    Map<int, Entry> entriesDecompressed =
+        HashMap.fromIterable(compressedEntries.map<Entry>((element) {
+      return Entry.decompress(element);
+    }), key: (element) {
+      return (element as Entry).id;
+    }, value: (element) {
+      return element as Entry;
+    });
+
+    List<String> compressedSymptoms = await getTable(SYMPTOMS);
+    Map<int, Symptom> symptomsDecompressed =
+        HashMap.fromIterable(compressedSymptoms.map<Symptom>((element) {
+      return Symptom.decompress(element);
+    }), key: (element) {
+      return Symptom.decompress(element).id;
+    }, value: (element) {
+      return Symptom.decompress(element);
+    });
+
+    List<String> compressedActivities = await getTable(ACTIVITIES);
+    Map<int, Activity> activitiesDecompressed =
+        HashMap.fromIterable(compressedActivities.map<Activity>((element) {
+      return Activity.decompress(element);
+    }), key: (element) {
+      return Activity.decompress(element).id;
+    }, value: (element) {
+      return Activity.decompress(element);
+    });
+
+    List<String> entrySymptomsJson = await getTable(ENTRY_SYMPTOMS);
+    List<Pair<int, int>> entrySymptoms =
+        entrySymptomsJson.map<Pair<int, int>>((element) {
+      dynamic jsonDecoded = json.decode(element);
+      return Pair<int, int>(
+          first: jsonDecoded['entry_id'], last: jsonDecoded['symptom_id']);
+    }).toList();
+
+    List<String> entryActivitiesJson = await getTable(ENTRY_ACTIVITIES);
+    List<Pair<int, int>> entryActivities =
+        entryActivitiesJson.map<Pair<int, int>>((element) {
+      dynamic jsonDecoded = json.decode(element);
+      return Pair<int, int>(
+          first: jsonDecoded['entry_id'], last: jsonDecoded['activity_id']);
+    }).toList();
+
+    for (Pair<int, int> entrySymptom in entrySymptoms) {
+      Entry? entryWithSymptom = entriesDecompressed[entrySymptom.first];
+      Symptom? symptomWithEntry = symptomsDecompressed[entrySymptom.last];
+      if (entryWithSymptom == null || symptomWithEntry == null) {
+        throw Exception(
+            'ERROR: found entry-symptom without one or more of corresponding Entry or corresponding Symptom: $entrySymptom');
+      }
+      entryWithSymptom.symptoms ??= List<Symptom>.empty(growable: true);
+      entryWithSymptom.symptoms!.add(symptomWithEntry);
+      entriesDecompressed[entrySymptom.first] = entryWithSymptom;
     }
 
-    final prefs = await SharedPreferences.getInstance();
-    try {
-      prefs.setStringList("tadpole_items", inputs);
-      return true;
-    } catch (e) {
-      throw Exception("ERROR: unable to save inputs $e");
+    for (Pair<int, int> entryActivity in entryActivities) {
+      Entry? entryWithActivity = entriesDecompressed[entryActivity.first];
+      Activity? activityWithEntry = activitiesDecompressed[entryActivity.last];
+      if (entryWithActivity == null || activityWithEntry == null) {
+        throw Exception(
+            'ERROR: found entry-activity without one or more of corresponding Entry or corresponding Activity: $entryActivity');
+      }
+      entryWithActivity.activities ??= List<Activity>.empty(growable: true);
+      entryWithActivity.activities!.add(activityWithEntry);
+      entriesDecompressed[entryActivity.first] = entryWithActivity;
     }
+
+    return entriesDecompressed.values.toList();
   }
 }

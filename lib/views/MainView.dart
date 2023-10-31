@@ -1,7 +1,7 @@
 // ignore_for_file: file_names
 
 import 'package:flutter/material.dart';
-import 'package:tadpole/controllers/MainController.dart';
+import 'package:tadpole/controllers/TodayController.dart';
 
 class MainView extends StatefulWidget {
   const MainView({super.key});
@@ -13,7 +13,7 @@ class MainView extends StatefulWidget {
 class _MainViewState extends State<MainView> {
   final GlobalKey<FormState> _key = GlobalKey();
 
-  MainController controller = MainController();
+  TodayController controller = TodayController();
 
   List<String>? inputs;
   String? newInput;
@@ -46,14 +46,11 @@ class _MainViewState extends State<MainView> {
                 onPressed: () async {
                   if (newInput != null && inputs != null) {
                     inputs!.add(newInput!);
-                  } else {
-                    print('something is null: $inputs, $newInput');
                   }
-                  await controller.storeInputs(inputs);
-                  print('inputs stored');
-                  List<String>? tempInputs = await controller.getInputs();
+                  //await controller.storeInputs(inputs);
+                  //List<String>? tempInputs = await controller.getInputs();
                   setState(() {
-                    inputs = tempInputs;
+                    //inputs = tempInputs;
                   });
                 },
                 child: const Text("Submit"),
@@ -62,8 +59,8 @@ class _MainViewState extends State<MainView> {
               FutureBuilder(
                 future: Future(() async {
                   setState(() async {
-                    inputs = await controller.getInputs() ??
-                        List<String>.empty(growable: true);
+                    //inputs = await controller.getInputs() ??
+                    List<String>.empty(growable: true);
                   });
                 }),
                 builder: (BuildContext context, AsyncSnapshot snapshot) {
