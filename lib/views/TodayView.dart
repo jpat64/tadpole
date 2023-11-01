@@ -1,17 +1,18 @@
 // ignore_for_file: file_names
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tadpole/controllers/TodayController.dart';
 import 'package:tadpole/models/EntryModel.dart';
 
-class TodayView extends StatefulWidget {
+class TodayView extends ConsumerStatefulWidget {
   const TodayView({super.key});
 
   @override
-  State createState() => _TodayViewState();
+  ConsumerState createState() => _TodayViewState();
 }
 
-class _TodayViewState extends State<TodayView> {
+class _TodayViewState extends ConsumerState<TodayView> {
   final GlobalKey<FormState> _key = GlobalKey();
 
   TodayController controller = TodayController();

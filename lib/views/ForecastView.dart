@@ -1,15 +1,16 @@
 // ignore_for_file: file_names
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ForecastView extends StatefulWidget {
+class ForecastView extends ConsumerStatefulWidget {
   const ForecastView({super.key});
 
   @override
-  State createState() => _ForecastViewState();
+  ConsumerState createState() => _ForecastViewState();
 }
 
-class _ForecastViewState extends State<ForecastView> {
+class _ForecastViewState extends ConsumerState<ForecastView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(

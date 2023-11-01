@@ -1,15 +1,16 @@
 // ignore_for_file: file_names
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class StatisticsView extends StatefulWidget {
+class StatisticsView extends ConsumerStatefulWidget {
   const StatisticsView({super.key});
 
   @override
-  State createState() => _StatisticsViewState();
+  ConsumerState createState() => _StatisticsViewState();
 }
 
-class _StatisticsViewState extends State<StatisticsView> {
+class _StatisticsViewState extends ConsumerState<StatisticsView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
