@@ -1,11 +1,10 @@
 // ignore_for_file: file_names
 
+import 'package:tadpole/controllers/BaseController.dart';
 import 'package:tadpole/models/EntryModel.dart';
 import 'package:tadpole/services/StorageService.dart';
 
-class TodayController {
-  final StorageService storageService = StorageService();
-
+class TodayController extends BaseController {
   // probably not necessary in the TodayController- could be moved to a controller for History, Forecast, and Statistics, when applicable
   List<Entry>? entries;
   List<Symptom>? symptoms;

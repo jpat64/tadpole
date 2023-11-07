@@ -1,31 +1,21 @@
 // ignore_for_file: file_names
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tadpole/controllers/LoginController.dart';
 import 'package:tadpole/models/PreferencesModel.dart';
-import 'package:tadpole/providers/preferences.dart';
 
-class LoginView extends ConsumerStatefulWidget {
+class LoginView extends StatefulWidget {
   const LoginView({super.key});
 
   @override
-  ConsumerState createState() => _LoginViewState();
+  State createState() => _LoginViewState();
 }
 
-class _LoginViewState extends ConsumerState<LoginView> {
+class _LoginViewState extends State<LoginView> {
   final GlobalKey<FormState> _key = GlobalKey();
 
   LoginController controller = LoginController();
-  late LoginType loginType;
-
-  @override
-  void initState() {
-    super.initState();
-
-    //loginType =
-    //  ref.watch(preferencesProvider).value?.loginType ?? LoginType.none;
-  }
+  LoginType? loginType;
 
   @override
   Widget build(BuildContext context) {
@@ -42,16 +32,22 @@ class _LoginViewState extends ConsumerState<LoginView> {
               const Text("Welcome to Tadpole!"),
               ElevatedButton(
                 onPressed: () async {
-                  loginType = ref.watch(preferencesProvider).value?.loginType ??
-                      LoginType.none;
-                  if (loginType == LoginType.none) {
-                    if (!mounted) return;
-                    Navigator.pushReplacementNamed(
-                      context,
-                      '/today',
-                    );
+                  PreferencesModel prefs = await controller.getPreferences();
+                  loginType = prefs.loginType;
+                  bool addedThemes = await controller.pushNewThemes();
+                  if (addedThemes) {
+                    if (loginType == LoginType.none) {
+                      if (!mounted) return;
+                      Navigator.pushReplacementNamed(
+                        context,
+                        '/today',
+                      );
+                    } else {
+                      // TODO: implement password and biometric authentication
+                      throw Exception("not implemented: $loginType");
+                    }
                   } else {
-                    print("not implemented: $loginType");
+                    throw Exception('error: initial themes not added');
                   }
                 },
                 child: const Text("Continue"),
@@ -60,6 +56,11 @@ class _LoginViewState extends ConsumerState<LoginView> {
           ),
         ),
       ),
+      bottomNavigationBar: ElevatedButton(
+          onPressed: () async {
+            await controller.resetEntriesThemesAndPreferences();
+          },
+          child: const Text("HARD RESET DATA (emergency use only)")),
     );
   }
 }

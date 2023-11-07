@@ -10,7 +10,9 @@ class BaseController {
   Future<PreferencesModel> getPreferences() async {
     String preferences =
         await storageService.getStoredString(StorageService.PREFERENCES);
-    return PreferencesModel.fromJsonString(preferences);
+    return preferences.isNotEmpty
+        ? PreferencesModel.fromJsonString(preferences)
+        : PreferencesModel.base();
   }
 
   Future<ThemeModel> getTheme(int themeId) async {

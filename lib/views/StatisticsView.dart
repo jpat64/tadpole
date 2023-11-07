@@ -1,18 +1,18 @@
 // ignore_for_file: file_names
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tadpole/services/LocalStorageState.dart';
 
-class StatisticsView extends ConsumerStatefulWidget {
+class StatisticsView extends StatefulWidget {
   const StatisticsView({super.key});
 
   @override
-  ConsumerState createState() => _StatisticsViewState();
+  State createState() => _StatisticsViewState();
 }
 
-class _StatisticsViewState extends ConsumerState<StatisticsView> {
+class _StatisticsViewState extends LocalStorageState<StatisticsView> {
   @override
-  Widget build(BuildContext context) {
+  Widget buildAfterLoad(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Statistics View"),

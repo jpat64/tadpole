@@ -13,6 +13,8 @@ class PreferencesModel {
     required this.themeId,
   });
 
+  PreferencesModel.base({this.loginType = LoginType.none, this.themeId = 0});
+
   static PreferencesModel fromJsonString(String jsonString) {
     Map<String, dynamic> jsonOfString = json.decode(jsonString);
     return PreferencesModel(
@@ -22,8 +24,21 @@ class PreferencesModel {
     );
   }
 
+  Map<String, dynamic> toJson() {
+    return {
+      "login_type": loginType.toString(),
+      "password": password ?? "",
+      "theme_id": themeId,
+    };
+  }
+
   String toJsonString() {
-    return json.encode(this);
+    return json.encode(toJson());
+  }
+
+  @override
+  String toString() {
+    return "PreferencesModel: loginType:$loginType, password:$password, themeId:$themeId";
   }
 }
 
