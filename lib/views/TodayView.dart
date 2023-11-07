@@ -28,7 +28,10 @@ class _TodayViewState extends LocalStorageState<TodayView> {
   @override
   Future<void> loadLocalData() async {
     PreferencesModel prefs = await controller.getPreferences();
-    selectedTheme = await controller.getTheme(prefs.themeId);
+    ThemeModel theme = await controller.getTheme(prefs.themeId);
+    setState(() {
+      selectedTheme = theme;
+    });
   }
 
   @override

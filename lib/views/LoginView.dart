@@ -34,20 +34,16 @@ class _LoginViewState extends State<LoginView> {
                 onPressed: () async {
                   PreferencesModel prefs = await controller.getPreferences();
                   loginType = prefs.loginType;
-                  bool addedThemes = await controller.pushNewThemes();
-                  if (addedThemes) {
-                    if (loginType == LoginType.none) {
-                      if (!mounted) return;
-                      Navigator.pushReplacementNamed(
-                        context,
-                        '/today',
-                      );
-                    } else {
-                      // TODO: implement password and biometric authentication
-                      throw Exception("not implemented: $loginType");
-                    }
+                  // await controller.pushNewThemes(); // only uncomment this on first-time run
+                  if (loginType == LoginType.none) {
+                    if (!mounted) return;
+                    Navigator.pushReplacementNamed(
+                      context,
+                      '/today',
+                    );
                   } else {
-                    throw Exception('error: initial themes not added');
+                    // TODO: implement password and biometric authentication
+                    throw Exception("not implemented: $loginType");
                   }
                 },
                 child: const Text("Continue"),

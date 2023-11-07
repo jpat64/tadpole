@@ -55,7 +55,10 @@ class _SettingsViewState extends LocalStorageState<SettingsView> {
             DropdownButton<int>(
               value: prefs!.themeId,
               onChanged: (value) async {
-                prefs!.themeId = value!;
+                setState(() {
+                  // updates the display in the dropdownmenu
+                  prefs!.themeId = value!;
+                });
                 await controller.updatePreferences(prefs!);
               },
               items:
