@@ -16,18 +16,22 @@ class SettingsView extends StatefulWidget {
 class _SettingsViewState extends LocalStorageState<SettingsView> {
   SettingsController controller = SettingsController();
 
-  Map<int, ThemeModel> availableThemes = Map<int, ThemeModel>.from({});
+  Map<int, ThemeModel>? availableThemes;
   PreferencesModel? prefs;
 
   @override
   Future<void> loadLocalData() async {
-    availableThemes = await controller.getAvailableThemes();
-    prefs = await controller.getPreferences();
+    var themes = await controller.getAvailableThemes();
+    var preferences = await controller.getPreferences();
+    setState(() {
+      availableThemes = themes;
+      prefs = preferences;
+    });
   }
 
   @override
   bool isDataLoaded() {
-    return availableThemes.isNotEmpty && prefs != null;
+    return (availableThemes?.isNotEmpty ?? false) && prefs != null;
   }
 
   @override
@@ -62,7 +66,7 @@ class _SettingsViewState extends LocalStorageState<SettingsView> {
                 await controller.updatePreferences(prefs!);
               },
               items:
-                  availableThemes.values.map<DropdownMenuItem<int>>((element) {
+                  availableThemes?.values.map<DropdownMenuItem<int>>((element) {
                 return DropdownMenuItem<int>(
                   value: element.id,
                   child: Text("id: ${element.id}"),
