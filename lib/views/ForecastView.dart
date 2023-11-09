@@ -1,6 +1,7 @@
 // ignore_for_file: file_names
 
 import 'package:flutter/material.dart';
+import 'package:tadpole/services/LocalStorageState.dart';
 
 class ForecastView extends StatefulWidget {
   const ForecastView({super.key});
@@ -9,9 +10,9 @@ class ForecastView extends StatefulWidget {
   State createState() => _ForecastViewState();
 }
 
-class _ForecastViewState extends State<ForecastView> {
+class _ForecastViewState extends LocalStorageState<ForecastView> {
   @override
-  Widget build(BuildContext context) {
+  Widget buildAfterLoad(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Forecast View"),

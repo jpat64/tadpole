@@ -5,6 +5,8 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tadpole/models/EntryModel.dart';
+import 'package:tadpole/models/PreferencesModel.dart';
+import 'package:tadpole/models/ThemeModel.dart';
 import 'package:tadpole/services/Pair.dart';
 
 /*
@@ -31,6 +33,8 @@ class StorageService {
   static String NEXT_SYMPTOM_ID = "tadpole_next_symptom_id";
   static String NEXT_ACTIVITY_ID = "tadpole_next_activity_id";
   static String NEXT_CYCLE_NUMBER = "tadpole_next_cycle_number";
+  static String PREFERENCES = "tadpole_preferences";
+  static String THEMES = "tadpole_themes";
 
   // helper method to one-line and un-null table results
   Future<List<String>> getTable(String tableName) async {
@@ -49,9 +53,47 @@ class StorageService {
     }
   }
 
+  Future<bool> setStoredString(String variableName, String value) async {
+    final prefs = await SharedPreferences.getInstance();
+    try {
+      prefs.setString(variableName, value);
+      return true;
+    } catch (e) {
+      throw Exception("Error writing value $variableName: $e");
+    }
+  }
+
   Future<int> getStoredInt(String variableName) async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getInt(variableName) ?? 0;
+  }
+
+  Future<String> getStoredString(String variableName) async {
+    final prefs = await SharedPreferences.getInstance();
+    String strVariable = prefs.containsKey(variableName)
+        ? prefs.getString(variableName) ?? ""
+        : "";
+    return strVariable;
+  }
+
+  Future<bool> clearPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    try {
+      prefs.setString(PREFERENCES, "");
+      return true;
+    } catch (e) {
+      throw Exception('could not clear preferences: $e');
+    }
+  }
+
+  Future<bool> clearThemes() async {
+    final prefs = await SharedPreferences.getInstance();
+    try {
+      prefs.setStringList(THEMES, List<String>.empty(growable: true));
+      return true;
+    } catch (e) {
+      throw Exception('could not clear themes: $e');
+    }
   }
 
   Future<bool> clearEntries() async {
@@ -62,6 +104,31 @@ class StorageService {
     } catch (e) {
       throw Exception("could not clear Entries: $e");
     }
+  }
+
+  Future<Map<int, ThemeModel>> getThemes() async {
+    List<String> rawThemes = await getTable(THEMES);
+    return {
+      for (var element in rawThemes.map<ThemeModel>((element) {
+        Map<String, dynamic> elementJson = json.decode(element);
+        return ThemeModel.fromJson(elementJson);
+      }))
+        (element).id: element
+    };
+  }
+
+  Future<bool> setPreferences(PreferencesModel prefs) async {
+    return await setStoredString(PREFERENCES, prefs.toJsonString());
+  }
+
+  Future<bool> addTheme(ThemeModel theme) async {
+    Map<int, ThemeModel> themes = await getThemes();
+    themes.putIfAbsent(theme.id, () => theme);
+    return await setTable(
+        THEMES,
+        themes.values.map<String>((element) {
+          return json.encode(element.toJson());
+        }).toList());
   }
 
   // CREATE because we don't support edit for MVP yet

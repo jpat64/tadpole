@@ -2,6 +2,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:tadpole/controllers/SettingsController.dart';
+import 'package:tadpole/models/PreferencesModel.dart';
+import 'package:tadpole/models/ThemeModel.dart';
+import 'package:tadpole/services/LocalStorageState.dart';
 
 class SettingsView extends StatefulWidget {
   const SettingsView({super.key});
@@ -10,11 +13,29 @@ class SettingsView extends StatefulWidget {
   State createState() => _SettingsViewState();
 }
 
-class _SettingsViewState extends State<SettingsView> {
+class _SettingsViewState extends LocalStorageState<SettingsView> {
   SettingsController controller = SettingsController();
 
+  Map<int, ThemeModel>? availableThemes;
+  PreferencesModel? prefs;
+
   @override
-  Widget build(BuildContext context) {
+  Future<void> loadLocalData() async {
+    var themes = await controller.getAvailableThemes();
+    var preferences = await controller.getPreferences();
+    setState(() {
+      availableThemes = themes;
+      prefs = preferences;
+    });
+  }
+
+  @override
+  bool isDataLoaded() {
+    return (availableThemes?.isNotEmpty ?? false) && prefs != null;
+  }
+
+  @override
+  Widget buildAfterLoad(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Settings View"),
@@ -28,6 +49,29 @@ class _SettingsViewState extends State<SettingsView> {
                 await controller.clearEntries();
               },
               child: const Text("reset Entries"),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                await controller.clearPreferences();
+              },
+              child: const Text("reset Preferences"),
+            ),
+            DropdownButton<int>(
+              value: prefs!.themeId,
+              onChanged: (value) async {
+                setState(() {
+                  // updates the display in the dropdownmenu
+                  prefs!.themeId = value!;
+                });
+                await controller.updatePreferences(prefs!);
+              },
+              items:
+                  availableThemes?.values.map<DropdownMenuItem<int>>((element) {
+                return DropdownMenuItem<int>(
+                  value: element.id,
+                  child: Text("id: ${element.id}"),
+                );
+              }).toList(),
             ),
           ],
         ),
