@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:tadpole/controllers/SettingsController.dart';
 import 'package:tadpole/models/PreferencesModel.dart';
 import 'package:tadpole/models/ThemeModel.dart';
-import 'package:tadpole/services/LocalStorageState.dart';
+import 'package:tadpole/helpers/LocalStorageState.dart';
 
 class SettingsView extends StatefulWidget {
   const SettingsView({super.key});

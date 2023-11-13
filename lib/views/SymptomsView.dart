@@ -3,14 +3,14 @@
 import 'package:flutter/material.dart';
 import 'package:tadpole/helpers/LocalStorageState.dart';
 
-class HistoryView extends StatefulWidget {
-  const HistoryView({super.key});
+class SymptomsView extends StatefulWidget {
+  const SymptomsView({super.key});
 
   @override
-  State createState() => _HistoryViewState();
+  State createState() => _SymptomsViewState();
 }
 
-class _HistoryViewState extends LocalStorageState<HistoryView> {
+class _SymptomsViewState extends LocalStorageState<SymptomsView> {
   @override
   void initState() {
     super.initState();
@@ -20,7 +20,7 @@ class _HistoryViewState extends LocalStorageState<HistoryView> {
   Widget buildAfterLoad(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("History View"),
+        title: const Text("Symptoms View"),
       ),
       body: Container(),
     );

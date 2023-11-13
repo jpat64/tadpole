@@ -5,11 +5,6 @@ import 'package:tadpole/models/EntryModel.dart';
 import 'package:tadpole/services/StorageService.dart';
 
 class TodayController extends BaseController {
-  // probably not necessary in the TodayController- could be moved to a controller for History, Forecast, and Statistics, when applicable
-  List<Entry>? entries;
-  List<Symptom>? symptoms;
-  List<Activity>? activities;
-
   Future<bool> addEntry(bool bleeding) async {
     Entry entry = Entry(
       date: DateTime.now().copyWith(
@@ -25,5 +20,13 @@ class TodayController extends BaseController {
 
   Future<List<Entry>> getEntries() async {
     return storageService.getEntries();
+  }
+
+  Future<List<Symptom>> getSymptoms() async {
+    return storageService.getSymptoms();
+  }
+
+  Future<List<Activity>> getActivities() async {
+    return storageService.getActivities();
   }
 }

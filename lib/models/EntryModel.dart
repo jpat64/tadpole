@@ -111,11 +111,11 @@ class Entry {
   }
 }
 
-class Activity {
+abstract class ListCandidate {
   int id;
   String text;
 
-  Activity({required this.id, required this.text});
+  ListCandidate({required this.id, required this.text});
 
   Map<String, dynamic> toJson() => {
         "id": id,
@@ -125,27 +125,14 @@ class Activity {
   String compress() {
     Map<String, dynamic> json = toJson();
     String jsonString = json.toString();
-    //List<int> utfEncoded = utf8.encode(jsonString);
-    //List<int> gzipEncoded = gzip.encode(utfEncoded);
-    //String base64Encoded = base64.encode(gzipEncoded);
     return jsonString;
   }
 
-  Activity.fromJson(Map<String, dynamic> json)
+  ListCandidate.fromJson(Map<String, dynamic> json)
       : id = json['id'] as int,
         text = json['text'] as String;
 
-  static Activity decompress(String encodedString) {
-    //List<int> base64Decoded = base64.decode(encodedString);
-    //List<int> gzipDecoded = gzip.decode(base64Decoded);
-    //String utfDecoded = utf8.decode(gzipDecoded);
-    Map<String, dynamic> jsonObject = json.decode(encodedString);
-    return Activity.fromJson(jsonObject);
-  }
-
-  int compareTo(Activity other) {
-    return other.text.compareTo(text);
-  }
+  int compareTo(ListCandidate other) => other.text.compareTo(text);
 
   @override
   int get hashCode => Object.hash(id, text);
@@ -162,49 +149,42 @@ class Activity {
   }
 }
 
-class Symptom {
-  int id;
-  String text;
+class Activity extends ListCandidate {
+  Activity({required super.id, required super.text});
 
-  Symptom({required this.id, required this.text});
+  Activity.fromJson(Map<String, dynamic> json) : super.fromJson(json);
 
-  Map<String, dynamic> toJson() => {
-        "id": id,
-        "text": text,
-      };
-
-  String compress() {
-    Map<String, dynamic> json = toJson();
-    String jsonString = json.toString();
-    // List<int> utfEncoded = utf8.encode(jsonString);
-    // List<int> gzipEncoded = gzip.encode(utfEncoded);
-    // String base64Encoded = base64.encode(gzipEncoded);
-    return jsonString;
-  }
-
-  Symptom.fromJson(Map<String, dynamic> json)
-      : id = json['id'] as int,
-        text = json['text'] as String;
-
-  static Symptom decompress(String encodedString) {
-    //List<int> base64Decoded = base64.decode(encodedString);
-    //List<int> gzipDecoded = gzip.decode(base64Decoded);
-    //String utfDecoded = utf8.decode(gzipDecoded);
-    Map<String, dynamic> jsonObject = json.decode(encodedString);
-    return Symptom.fromJson(jsonObject);
-  }
+  static Activity decompress(String encodedString) =>
+      Activity.fromJson(json.decode(encodedString));
 
   @override
-  int get hashCode => Object.hash(id, text);
+  int compareTo(ListCandidate other) {
+    if (other is Activity) {
+      return other.text.compareTo(text);
+    } else {
+      throw Exception('comparing $this to $other- not an Activity.');
+    }
+  }
+
+  Activity.base({super.id = -1, super.text = "base Activity"});
+}
+
+class Symptom extends ListCandidate {
+  Symptom({required super.id, required super.text});
+
+  Symptom.fromJson(Map<String, dynamic> json) : super.fromJson(json);
+
+  static Symptom decompress(String encodedString) =>
+      Symptom.fromJson(json.decode(encodedString));
 
   @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) {
-      return true;
+  int compareTo(ListCandidate other) {
+    if (other is Symptom) {
+      return other.text.compareTo(text);
+    } else {
+      throw Exception('comparing $this to $other- not a Symptom.');
     }
-    if (other.runtimeType != runtimeType) {
-      return false;
-    }
-    return (other as Symptom).text.compareTo(text) == 0;
   }
+
+  Symptom.base({super.id = -1, super.text = "base Symptom"});
 }

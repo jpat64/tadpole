@@ -2,10 +2,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:tadpole/controllers/TodayController.dart';
+import 'package:tadpole/helpers/SelectableOrEntryRow.dart';
 import 'package:tadpole/models/EntryModel.dart';
 import 'package:tadpole/models/PreferencesModel.dart';
 import 'package:tadpole/models/ThemeModel.dart';
-import 'package:tadpole/services/LocalStorageState.dart';
+import 'package:tadpole/helpers/LocalStorageState.dart';
 
 class TodayView extends StatefulWidget {
   const TodayView({super.key});
@@ -19,6 +20,8 @@ class _TodayViewState extends LocalStorageState<TodayView> {
 
   TodayController controller = TodayController();
   ThemeModel selectedTheme = ThemeModel.base();
+  List<Symptom> symptoms = List<Symptom>.empty(growable: true);
+  List<Activity> activities = List<Activity>.empty(growable: true);
 
   // bleeding is in the form
   bool bleeding = false;
@@ -29,13 +32,22 @@ class _TodayViewState extends LocalStorageState<TodayView> {
   Future<void> loadLocalData() async {
     PreferencesModel prefs = await controller.getPreferences();
     ThemeModel theme = await controller.getTheme(prefs.themeId);
+    List<Symptom> s = await controller.getSymptoms();
+    List<Activity> a = await controller.getActivities();
     setState(() {
       selectedTheme = theme;
+      symptoms = s;
+      activities = a;
     });
   }
 
   @override
   Widget buildAfterLoad(BuildContext context) {
+    List<ListTile> symptomsList = symptoms.map<ListTile>((element) {
+      return selectableOrEntryRow(
+          listItem: element, checked: false, editable: false);
+    }).toList();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Today View"),
@@ -46,7 +58,7 @@ class _TodayViewState extends LocalStorageState<TodayView> {
             key: _key,
             child: Column(
               children: [
-                Text("Welcome to Tadpole! theme: ${selectedTheme.id}"),
+                Text("Welcome to Today!! theme: ${selectedTheme.id}"),
                 Row(
                   children: [
                     Text(selectedTheme.bleedingQuestion),
@@ -60,22 +72,21 @@ class _TodayViewState extends LocalStorageState<TodayView> {
                         })
                   ],
                 ),
+                ExpansionTile(
+                    initiallyExpanded: false,
+                    title: Text(selectedTheme.symptomQuestion),
+                    children: symptomsList),
                 ElevatedButton(
                   onPressed: () async {
-                    controller.addEntry(bleeding);
+                    bool success = await controller.addEntry(bleeding);
+                    if (success) {
+                      List<Entry> foundEntries = await controller.getEntries();
+                      entries = foundEntries;
+                    }
                   },
                   child: const Text("Submit"),
                 ),
                 const Divider(height: 10),
-                ElevatedButton(
-                  onPressed: () async {
-                    List<Entry> foundEntries = await controller.getEntries();
-                    setState(() {
-                      entries = foundEntries;
-                    });
-                  },
-                  child: const Text("Refresh Entries"),
-                ),
                 if (entries != null)
                   Column(
                     children: entries!.map<Text>((element) {

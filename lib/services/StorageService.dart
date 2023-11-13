@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tadpole/models/EntryModel.dart';
 import 'package:tadpole/models/PreferencesModel.dart';
 import 'package:tadpole/models/ThemeModel.dart';
-import 'package:tadpole/services/Pair.dart';
+import 'package:tadpole/helpers/Pair.dart';
 
 /*
   "DB" Structure:
@@ -209,28 +209,31 @@ class StorageService {
       return Entry.decompress(element);
     }).toList();
 
-    // step 3c: ensure the entry isn't a duplicate
-    if (entriesDecompressed.contains(entry) == false) {
-      entriesCompressed.add(entryCompressed);
-      entriesDecompressed.add(entry);
-      try {
-        // step 3d: store everything- entry, then symptoms, then entry-symptoms, then activities, then entry-activities
-        bool success = true;
-        success = success | await setTable(ENTRIES, entriesCompressed);
-        if (hasSymptoms) {
-          success = success | await setTable(SYMPTOMS, symptomsCompressed);
-          success = success | await setTable(ENTRY_SYMPTOMS, entrySymptoms);
-        }
-        if (hasActivities) {
-          success = success | await setTable(ACTIVITIES, activitiesCompressed);
-          success = success | await setTable(ENTRY_ACTIVITIES, entryActivities);
-        }
-        return success;
-      } catch (e) {
-        throw Exception("error saving new entry $entry: $e");
-      }
+    // step 3c: remove the entry from storage, if it already exists
+    int index = entriesDecompressed.indexOf(entry);
+    if (index >= 0) {
+      entriesDecompressed.removeAt(index);
+      entriesCompressed.removeAt(index);
     }
-    return false;
+    entriesCompressed.add(entryCompressed);
+    entriesDecompressed.add(entry);
+
+    try {
+      // step 3d: store everything- entry, then symptoms, then entry-symptoms, then activities, then entry-activities
+      bool success = true;
+      success = success | await setTable(ENTRIES, entriesCompressed);
+      if (hasSymptoms) {
+        success = success | await setTable(SYMPTOMS, symptomsCompressed);
+        success = success | await setTable(ENTRY_SYMPTOMS, entrySymptoms);
+      }
+      if (hasActivities) {
+        success = success | await setTable(ACTIVITIES, activitiesCompressed);
+        success = success | await setTable(ENTRY_ACTIVITIES, entryActivities);
+      }
+      return success;
+    } catch (e) {
+      throw Exception("error saving new entry $entry: $e");
+    }
   }
 
   // READ all entries from local storage
@@ -307,5 +310,19 @@ class StorageService {
     }
 
     return entriesDecompressed.values.toList();
+  }
+
+  Future<List<Symptom>> getSymptoms() async {
+    List<String> rawSymptoms = await getTable(SYMPTOMS);
+    return rawSymptoms.map<Symptom>((element) {
+      return Symptom.decompress(element);
+    }).toList();
+  }
+
+  Future<List<Activity>> getActivities() async {
+    List<String> rawActivities = await getTable(ACTIVITIES);
+    return rawActivities.map<Activity>((element) {
+      return Activity.decompress(element);
+    }).toList();
   }
 }

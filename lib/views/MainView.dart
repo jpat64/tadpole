@@ -1,7 +1,7 @@
 // ignore_for_file: file_names
 
 import 'package:flutter/material.dart';
-import 'package:tadpole/services/LocalStorageState.dart';
+import 'package:tadpole/helpers/LocalStorageState.dart';
 
 class MainView extends StatefulWidget {
   const MainView({super.key});
