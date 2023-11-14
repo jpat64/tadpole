@@ -5,7 +5,6 @@ import 'dart:convert';
 
 class Entry {
   int cycle;
-  DateTime date;
   bool bleeding;
   int? flow;
   int? pain;
@@ -19,7 +18,6 @@ class Entry {
   // also, it is called by the other constructor `createEntry` which requires an id when it's called
   Entry(
       {required this.cycle,
-      required this.date,
       required this.bleeding,
       this.flow,
       this.pain,
@@ -33,7 +31,6 @@ class Entry {
   // when this is called, id will need to be generated
   Entry createEntry(
     int cycle,
-    DateTime date,
     bool bleeding,
     int? flow,
     int? pain,
@@ -45,7 +42,6 @@ class Entry {
   ) {
     return Entry(
       cycle: cycle,
-      date: date,
       bleeding: bleeding,
       flow: flow,
       pain: pain,
@@ -59,7 +55,6 @@ class Entry {
 
   Map<String, dynamic> toJson() => {
         "cycle": cycle,
-        "date": date.toIso8601String(),
         "bleeding": bleeding,
         "flow": flow,
         "pain": pain,
@@ -67,6 +62,11 @@ class Entry {
         "notes": notes,
         "id": id,
       };
+
+  @override
+  String toString() {
+    return "Entry: {id:$id, cycle:$cycle, bleeding:$bleeding, flow:$flow, pain:$pain, temperature:$temperature, notes:$notes, activities:$activities, symptoms:$symptoms}";
+  }
 
   String compress() {
     Map<String, dynamic> jsonMap = toJson();
@@ -79,7 +79,6 @@ class Entry {
 
   Entry.fromJson(Map<String, dynamic> json)
       : cycle = json['cycle'] as int,
-        date = DateTime.parse(json['date']),
         bleeding = json['bleeding'] as bool,
         flow = json['flow'] as int?,
         pain = json['pain'] as int?,
@@ -97,7 +96,7 @@ class Entry {
 
   @override
   int get hashCode =>
-      Object.hash(id, cycle, date, bleeding, flow, pain, temperature, notes);
+      Object.hash(id, cycle, bleeding, flow, pain, temperature, notes);
 
   @override
   bool operator ==(Object other) {
@@ -107,19 +106,21 @@ class Entry {
     if (other.runtimeType != runtimeType) {
       return false;
     }
-    return (other as Entry).date.compareTo(date) == 0;
+    return (other as Entry).id.compareTo(id) == 0;
   }
 }
 
 abstract class ListCandidate {
   int id;
   String text;
+  bool deleted;
 
-  ListCandidate({required this.id, required this.text});
+  ListCandidate({required this.id, required this.text, required this.deleted});
 
   Map<String, dynamic> toJson() => {
         "id": id,
         "text": text,
+        "deleted": deleted,
       };
 
   String compress() {
@@ -130,7 +131,8 @@ abstract class ListCandidate {
 
   ListCandidate.fromJson(Map<String, dynamic> json)
       : id = json['id'] as int,
-        text = json['text'] as String;
+        text = json['text'] as String,
+        deleted = json['deleted'] as bool;
 
   int compareTo(ListCandidate other) => other.text.compareTo(text);
 
@@ -145,12 +147,17 @@ abstract class ListCandidate {
     if (other.runtimeType != runtimeType) {
       return false;
     }
-    return (other as Activity).text.compareTo(text) == 0;
+    return (other as ListCandidate).text.compareTo(text) == 0;
+  }
+
+  @override
+  String toString() {
+    return "${runtimeType.toString()}: id:$id, text:$text, deleted:$deleted";
   }
 }
 
 class Activity extends ListCandidate {
-  Activity({required super.id, required super.text});
+  Activity({required super.id, required super.text, super.deleted = false});
 
   Activity.fromJson(Map<String, dynamic> json) : super.fromJson(json);
 
@@ -166,11 +173,12 @@ class Activity extends ListCandidate {
     }
   }
 
-  Activity.base({super.id = -1, super.text = "base Activity"});
+  Activity.base(
+      {super.id = -1, super.text = "base Activity", super.deleted = false});
 }
 
 class Symptom extends ListCandidate {
-  Symptom({required super.id, required super.text});
+  Symptom({required super.id, required super.text, super.deleted = false});
 
   Symptom.fromJson(Map<String, dynamic> json) : super.fromJson(json);
 
@@ -186,5 +194,6 @@ class Symptom extends ListCandidate {
     }
   }
 
-  Symptom.base({super.id = -1, super.text = "base Symptom"});
+  Symptom.base(
+      {super.id = -1, super.text = "base Symptom", super.deleted = false});
 }

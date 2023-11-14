@@ -3,12 +3,14 @@
 class ThemeModel {
   String bleedingQuestion;
   String symptomQuestion;
+  String activityQuestion;
   int id;
 
   ThemeModel({
     required this.id,
     required this.bleedingQuestion,
     required this.symptomQuestion,
+    required this.activityQuestion,
   });
 
   static ThemeModel fromJson(Map<String, dynamic> json) {
@@ -16,6 +18,8 @@ class ThemeModel {
       id: json['id'] ?? 0,
       bleedingQuestion: json['bleeding_question'] ?? "Are you bleeding?",
       symptomQuestion: json['symptom_question'] ?? "What are your symptoms?",
+      activityQuestion:
+          json['activity_question'] ?? "Which activities have you done?",
     );
   }
 
@@ -23,11 +27,13 @@ class ThemeModel {
     id = 0,
     bleedingQuestion = "Are you bleeding?",
     symptomQuestion = "What are your symptoms?",
+    activityQuestion = "Which activities have you done?",
   }) {
     return ThemeModel(
       id: id,
       bleedingQuestion: bleedingQuestion,
       symptomQuestion: symptomQuestion,
+      activityQuestion: activityQuestion,
     );
   }
 
@@ -36,6 +42,7 @@ class ThemeModel {
       "id": id,
       "bleeding_question": bleedingQuestion,
       "symptom_question": symptomQuestion,
+      "activity_question": activityQuestion,
     };
   }
 }

@@ -73,6 +73,18 @@ class _SettingsViewState extends LocalStorageState<SettingsView> {
                 );
               }).toList(),
             ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/activities');
+              },
+              child: const Text("manage activities"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/symptoms');
+              },
+              child: const Text("manage symptoms"),
+            ),
           ],
         ),
       ),
