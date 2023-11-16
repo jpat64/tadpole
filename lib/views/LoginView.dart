@@ -34,7 +34,8 @@ class _LoginViewState extends State<LoginView> {
                 onPressed: () async {
                   PreferencesModel prefs = await controller.getPreferences();
                   loginType = prefs.loginType;
-                  // await controller.pushNewThemes(); // only uncomment this on first-time run
+                  await controller
+                      .pushNewThemes(); // only uncomment this on first-time run
                   if (loginType == LoginType.none) {
                     if (!mounted) return;
                     Navigator.pushReplacementNamed(

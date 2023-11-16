@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tadpole/models/EntryModel.dart';
 import 'package:tadpole/models/PreferencesModel.dart';
 import 'package:tadpole/models/ThemeModel.dart';
-import 'package:tadpole/services/Pair.dart';
+import 'package:tadpole/helpers/Pair.dart';
 
 /*
   "DB" Structure:
@@ -100,6 +100,8 @@ class StorageService {
     final prefs = await SharedPreferences.getInstance();
     try {
       prefs.setStringList(ENTRIES, List<String>.empty(growable: true));
+      prefs.setStringList(ENTRY_ACTIVITIES, List<String>.empty(growable: true));
+      prefs.setStringList(ENTRY_SYMPTOMS, List<String>.empty(growable: true));
       return true;
     } catch (e) {
       throw Exception("could not clear Entries: $e");
@@ -131,34 +133,67 @@ class StorageService {
         }).toList());
   }
 
-  // CREATE because we don't support edit for MVP yet
-  Future<bool> addEntry(Entry? entry) async {
+  // DELETE if exists, then CREATE (works to both update and add)
+  Future<bool> updateEntry(Entry? entry) async {
     // step 0: null check & setup
     if (entry == null) {
       return false;
     }
 
+    // step 1: remove if an entry with this ID already exists
+    List<String> rawEntries = await getTable(ENTRIES);
+    List<String> entrySymptoms = await getTable(ENTRY_SYMPTOMS);
+    List<String> entryActivities = await getTable(ENTRY_ACTIVITIES);
+    List<Entry> entries = rawEntries.map<Entry>((element) {
+      return Entry.decompress(element);
+    }).toList();
+
+    int entryIndex = entries.indexOf(entry);
+    if (entryIndex >= 0) {
+      entries.removeAt(entryIndex);
+      rawEntries.removeAt(entryIndex);
+      int entryId = entry.id;
+      entrySymptoms.removeWhere(
+        (element) {
+          Map<String, dynamic> jsonDecoded = json.decode(element);
+          Pair<int, int> kvPair = Pair<int, int>(
+            first: int.parse(jsonDecoded['entry_id']),
+            last: int.parse(jsonDecoded['symptom_id']),
+          );
+          return kvPair.first == entryId;
+        },
+      );
+      entryActivities.removeWhere(
+        (element) {
+          Map<String, dynamic> jsonDecoded = json.decode(element);
+          Pair<int, int> kvPair = Pair<int, int>(
+            first: int.parse(jsonDecoded['entry_id']),
+            last: int.parse(jsonDecoded['activity_id']),
+          );
+          return kvPair.first == entryId;
+        },
+      );
+    }
+
     bool hasSymptoms = entry.symptoms?.isNotEmpty ?? false;
     List<String> symptomsCompressed =
         hasSymptoms ? await getTable(SYMPTOMS) : List<String>.empty();
-    List<String> entrySymptoms =
-        hasSymptoms ? await getTable(ENTRY_SYMPTOMS) : List<String>.empty();
     bool hasActivities = entry.activities?.isNotEmpty ?? false;
     List<String> activitiesCompressed =
         hasActivities ? await getTable(ACTIVITIES) : List<String>.empty();
-    List<String> entryActivities =
-        hasActivities ? await getTable(ENTRY_ACTIVITIES) : List<String>.empty();
 
-    // step 1: get all symptoms and add any new ones
-    // step 1a: only store if there exist symptoms on entry
+    print("hasSymptoms: $hasSymptoms, hasActivities: $hasActivities");
+
+    // step 2: get all symptoms and add any new ones
+    // step 2a: only store if there exist symptoms on entry
     if (hasSymptoms) {
-      // step 1b: get symptoms list (as list of Symptoms)
+      // step 2b: get symptoms list (as list of Symptoms)
       List<Symptom> symptomsDecompressed =
           symptomsCompressed.map<Symptom>((String element) {
         return Symptom.decompress(element);
       }).toList();
 
-      // step 1c: for each symptom, store if its text is unique
+      // step 2c: for each symptom, store if its text is unique
       // LOGROLL: store the compressed version, too- it's not editable
       for (Symptom s in entry.symptoms!) {
         if (symptomsDecompressed.contains(s) == false) {
@@ -167,23 +202,23 @@ class StorageService {
         }
       }
 
-      // step 1d: add entry-symptoms (should all be new since we are ADDing)
+      // step 2d: add entry-symptoms (should all be new since we are ADDing)
       for (Symptom s in entry.symptoms!) {
         entrySymptoms
             .add("{\"entry_id\":\"${entry.id}\",\"symptom_id\":\"${s.id}\"}");
       }
     }
 
-    // step 2: get all activities and add any new ones
-    // step 2a: only add if there exist activities on entry
+    // step 3: get all activities and add any new ones
+    // step 3a: only add if there exist activities on entry
     if (hasActivities) {
-      // step 2b: get activities list (as list of Activitys)
+      // step 3b: get activities list (as list of Activitys)
       List<Activity> activitiesDecompressed =
           activitiesCompressed.map<Activity>((String element) {
         return Activity.decompress(element);
       }).toList();
 
-      // step 2c: for each activity, store if its text is unique
+      // step 3c: for each activity, store if its text is unique
       // LOGROLL: store the compressed version, too- it's not editable
       for (Activity a in entry.activities!) {
         if (activitiesDecompressed.contains(a) == false) {
@@ -192,50 +227,39 @@ class StorageService {
         }
       }
 
-      // step 2d: add entry-activities (should all be new since we are ADDing)
+      // step 3d: add entry-activities (should all be new since we are ADDing)
       for (Activity a in entry.activities!) {
         entryActivities
             .add("{\"entry_id\":\"${entry.id}\",\"activity_id\":\"${a.id}\"}");
       }
     }
 
-    // step 3: store compressed symptoms, compressed activities, entry-symptoms, entry-activities, and compressed entry
-    // step 3a: compress Entry
+    // step 4: store compressed symptoms, compressed activities, entry-symptoms, entry-activities, and compressed entry
+    // step 4a: compress Entry
     String entryCompressed = entry.compress();
+    rawEntries.add(entryCompressed);
+    entries.add(entry);
 
-    // step 3b: get Entry list as list of decompressed Entrys
-    List<String> entriesCompressed = await getTable(ENTRIES);
-    List<Entry> entriesDecompressed = entriesCompressed.map<Entry>((element) {
-      return Entry.decompress(element);
-    }).toList();
-
-    // step 3c: ensure the entry isn't a duplicate
-    if (entriesDecompressed.contains(entry) == false) {
-      entriesCompressed.add(entryCompressed);
-      entriesDecompressed.add(entry);
-      try {
-        // step 3d: store everything- entry, then symptoms, then entry-symptoms, then activities, then entry-activities
-        bool success = true;
-        success = success | await setTable(ENTRIES, entriesCompressed);
-        if (hasSymptoms) {
-          success = success | await setTable(SYMPTOMS, symptomsCompressed);
-          success = success | await setTable(ENTRY_SYMPTOMS, entrySymptoms);
-        }
-        if (hasActivities) {
-          success = success | await setTable(ACTIVITIES, activitiesCompressed);
-          success = success | await setTable(ENTRY_ACTIVITIES, entryActivities);
-        }
-        return success;
-      } catch (e) {
-        throw Exception("error saving new entry $entry: $e");
+    try {
+      // step 4d: store everything- entry, then symptoms, then entry-symptoms, then activities, then entry-activities
+      bool success = true;
+      success = success | await setTable(ENTRIES, rawEntries);
+      success = success | await setTable(ENTRY_SYMPTOMS, entrySymptoms);
+      success = success | await setTable(ENTRY_ACTIVITIES, entryActivities);
+      if (hasSymptoms) {
+        success = success | await setTable(SYMPTOMS, symptomsCompressed);
       }
+      if (hasActivities) {
+        success = success | await setTable(ACTIVITIES, activitiesCompressed);
+      }
+      return success;
+    } catch (e) {
+      throw Exception("error saving new entry $entry: $e");
     }
-    return false;
   }
 
   // READ all entries from local storage
   Future<List<Entry>> getEntries() async {
-    // Step 1: read all of the storage into the right maps/lists
     List<String> compressedEntries = await getTable(ENTRIES);
     Map<int, Entry> entriesDecompressed =
         HashMap.fromIterable(compressedEntries.map<Entry>((element) {
@@ -251,9 +275,9 @@ class StorageService {
         HashMap.fromIterable(compressedSymptoms.map<Symptom>((element) {
       return Symptom.decompress(element);
     }), key: (element) {
-      return Symptom.decompress(element).id;
+      return element.id;
     }, value: (element) {
-      return Symptom.decompress(element);
+      return element;
     });
 
     List<String> compressedActivities = await getTable(ACTIVITIES);
@@ -261,17 +285,19 @@ class StorageService {
         HashMap.fromIterable(compressedActivities.map<Activity>((element) {
       return Activity.decompress(element);
     }), key: (element) {
-      return Activity.decompress(element).id;
+      return element.id;
     }, value: (element) {
-      return Activity.decompress(element);
+      return element;
     });
 
     List<String> entrySymptomsJson = await getTable(ENTRY_SYMPTOMS);
     List<Pair<int, int>> entrySymptoms =
         entrySymptomsJson.map<Pair<int, int>>((element) {
-      dynamic jsonDecoded = json.decode(element);
+      Map<String, dynamic> jsonDecoded = json.decode(element);
       return Pair<int, int>(
-          first: jsonDecoded['entry_id'], last: jsonDecoded['symptom_id']);
+        first: int.parse(jsonDecoded['entry_id']),
+        last: int.parse(jsonDecoded['symptom_id']),
+      );
     }).toList();
 
     List<String> entryActivitiesJson = await getTable(ENTRY_ACTIVITIES);
@@ -279,7 +305,9 @@ class StorageService {
         entryActivitiesJson.map<Pair<int, int>>((element) {
       dynamic jsonDecoded = json.decode(element);
       return Pair<int, int>(
-          first: jsonDecoded['entry_id'], last: jsonDecoded['activity_id']);
+        first: int.parse(jsonDecoded['entry_id']),
+        last: int.parse(jsonDecoded['activity_id']),
+      );
     }).toList();
 
     for (Pair<int, int> entrySymptom in entrySymptoms) {
@@ -305,7 +333,20 @@ class StorageService {
       entryWithActivity.activities!.add(activityWithEntry);
       entriesDecompressed[entryActivity.first] = entryWithActivity;
     }
-
     return entriesDecompressed.values.toList();
+  }
+
+  Future<List<Symptom>> getSymptoms() async {
+    List<String> rawSymptoms = await getTable(SYMPTOMS);
+    return rawSymptoms.map<Symptom>((element) {
+      return Symptom.decompress(element);
+    }).toList();
+  }
+
+  Future<List<Activity>> getActivities() async {
+    List<String> rawActivities = await getTable(ACTIVITIES);
+    return rawActivities.map<Activity>((element) {
+      return Activity.decompress(element);
+    }).toList();
   }
 }
