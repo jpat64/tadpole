@@ -10,12 +10,18 @@ class LoginController extends BaseController {
     ThemeModel defaultTheme = ThemeModel(
       id: 0,
       bleedingQuestion: "How are you doing?",
+      painQuestion: "1-5: pain level?",
+      flowQuestion: "1-5: flow heaviness?",
+      temperatureQuestion: "What's your temperature?",
       symptomQuestion: "What are your symptoms?",
       activityQuestion: "Which activities have you done?",
     );
     ThemeModel nextTheme = ThemeModel(
       id: 1,
       bleedingQuestion: "How aren't you doing?",
+      painQuestion: "1-5: pain leveln't?",
+      flowQuestion: "1-5: flow heavinessn't?",
+      temperatureQuestion: "What's not your temperature?",
       symptomQuestion: "What aren't your symptoms?",
       activityQuestion: "Which activities haven't you done?",
     );

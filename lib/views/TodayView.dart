@@ -1,6 +1,8 @@
-// ignore_for_file: file_names
+// ignore_for_file: file_names, unnecessary_string_escapes
 
+import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:tadpole/controllers/TodayController.dart';
 import 'package:tadpole/models/EntryModel.dart';
 import 'package:tadpole/models/PreferencesModel.dart';
@@ -27,6 +29,12 @@ class _TodayViewState extends LocalStorageState<TodayView> {
   // bleeding is in the form
   bool bleeding = false;
   int todayId = -1;
+  bool inPain = false;
+  int painLevel = 0;
+  bool flowing = false;
+  int flowLevel = 0;
+  Decimal? temperature;
+  String? notes;
 
   List<Entry>? entries;
 
@@ -45,12 +53,16 @@ class _TodayViewState extends LocalStorageState<TodayView> {
       selectedTheme = theme;
       symptoms = s;
       activities = a;
-      bleeding = todayEntry?.bleeding ?? false;
-      selectedSymptoms =
-          todayEntry?.symptoms ?? List<Symptom>.empty(growable: true);
-      selectedActivities =
-          todayEntry?.activities ?? List<Activity>.empty(growable: true);
+      bleeding = todayEntry?.bleeding ?? bleeding;
+      selectedSymptoms = todayEntry?.symptoms ?? selectedSymptoms;
+      selectedActivities = todayEntry?.activities ?? selectedActivities;
       todayId = t;
+      inPain = ((todayEntry?.pain ?? painLevel) > 0);
+      painLevel = inPain ? todayEntry?.pain ?? painLevel : 0;
+      flowing = ((todayEntry?.flow ?? flowLevel) > 0);
+      flowLevel = flowing ? todayEntry?.flow ?? flowLevel : 0;
+      temperature = temperature ?? todayEntry?.temperature;
+      notes = notes ?? todayEntry?.notes;
     });
   }
 
@@ -61,7 +73,11 @@ class _TodayViewState extends LocalStorageState<TodayView> {
         title: const Text("Today View"),
       ),
       body: Container(
-          padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.blue),
+          ),
           child: Form(
             key: _key,
             child: ListView(
@@ -80,8 +96,99 @@ class _TodayViewState extends LocalStorageState<TodayView> {
                         })
                   ],
                 ),
+                Column(
+                  children: [
+                    Row(
+                      children: [
+                        Text(selectedTheme.painQuestion),
+                        const Spacer(),
+                        Checkbox(
+                          value: inPain,
+                          onChanged: (value) {
+                            setState(() {
+                              inPain = value ?? inPain;
+                              painLevel = inPain ? 1 : 0;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                    if (inPain)
+                      Slider(
+                        value: painLevel.toDouble(),
+                        onChanged: (value) {
+                          setState(() {
+                            painLevel = value.toInt();
+                          });
+                        },
+                        min: 1,
+                        max: 5,
+                        divisions: 5,
+                        label: painLevel.toString(),
+                      ),
+                  ],
+                ),
+                Column(
+                  children: [
+                    Row(
+                      children: [
+                        Text(selectedTheme.flowQuestion),
+                        const Spacer(),
+                        Checkbox(
+                          value: flowing,
+                          onChanged: (value) {
+                            setState(() {
+                              flowing = value ?? flowing;
+                              flowLevel = flowing ? 1 : 0;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                    if (flowing)
+                      Slider(
+                        value: flowLevel.toDouble(),
+                        onChanged: (value) {
+                          setState(() {
+                            flowLevel = value.toInt();
+                          });
+                        },
+                        min: 1.0,
+                        max: 5.0,
+                        divisions: 5,
+                        label: flowLevel.toString(),
+                      ),
+                  ],
+                ),
+                Row(children: [
+                  Text(selectedTheme.temperatureQuestion),
+                  const Spacer(),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.2,
+                    child: TextField(
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(
+                            RegExp('^[0-9]*\.[0-9]*\$'))
+                      ],
+                      onChanged: (value) {
+                        Decimal? decTemp = Decimal.tryParse(value);
+                        setState(
+                          () {
+                            if (decTemp != null) {
+                              temperature = decTemp;
+                            }
+                            if (value.isEmpty) {
+                              temperature = null;
+                            }
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ]),
                 ExpansionTile(
-                    initiallyExpanded: false,
+                    initiallyExpanded: selectedSymptoms.isNotEmpty,
                     title: Text(selectedTheme.symptomQuestion),
                     children: symptoms.map<CheckboxListTile>((element) {
                       return CheckboxListTile(
@@ -102,7 +209,7 @@ class _TodayViewState extends LocalStorageState<TodayView> {
                       );
                     }).toList()),
                 ExpansionTile(
-                    initiallyExpanded: false,
+                    initiallyExpanded: selectedActivities.isNotEmpty,
                     title: Text(selectedTheme.activityQuestion),
                     children: activities.map<CheckboxListTile>((element) {
                       return CheckboxListTile(
@@ -123,10 +230,26 @@ class _TodayViewState extends LocalStorageState<TodayView> {
                         },
                       );
                     }).toList()),
+                TextField(
+                  decoration: const InputDecoration(
+                    hintText: "Enter your notes here...",
+                  ),
+                  minLines: 4,
+                  maxLines: 10,
+                  onChanged: (value) {
+                    setState(() {
+                      notes = value;
+                    });
+                  },
+                ),
                 ElevatedButton(
                   onPressed: () async {
-                    bool success =
-                        await controller.addEntry(bleeding, selectedSymptoms);
+                    bool success = await controller.addEntry(
+                        bleeding,
+                        painLevel,
+                        flowLevel,
+                        selectedSymptoms,
+                        selectedActivities);
                     if (success) {
                       // addEntry() takes a bit of time, so we were hitting getEntries() too quickly. Waiting zero makes sure we go in order.
                       await Future.delayed(Duration.zero);
@@ -152,7 +275,9 @@ class _TodayViewState extends LocalStorageState<TodayView> {
                   )
               ],
             ),
-          )),
+          ),
+        ),
+      ),
       bottomNavigationBar: Row(
         children: [
           ElevatedButton(
