@@ -38,8 +38,6 @@ class SymptomsController extends BaseController {
 
   Future<bool> deleteSymptom(Symptom symptom) async {
     List<Symptom> symptoms = await storageService.getSymptoms();
-    print(symptoms);
-    print(symptom);
     if (symptoms.contains(symptom)) {
       symptoms.where((element) => element == symptom).first.deleted = true;
     }

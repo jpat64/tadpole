@@ -182,8 +182,6 @@ class StorageService {
     List<String> activitiesCompressed =
         hasActivities ? await getTable(ACTIVITIES) : List<String>.empty();
 
-    print("hasSymptoms: $hasSymptoms, hasActivities: $hasActivities");
-
     // step 2: get all symptoms and add any new ones
     // step 2a: only store if there exist symptoms on entry
     if (hasSymptoms) {
