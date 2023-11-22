@@ -2,11 +2,9 @@
 
 import 'dart:math';
 
-import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:tadpole/controllers/StatisticsController.dart';
 import 'package:tadpole/helpers/LocalStorageState.dart';
-import 'package:tadpole/models/EntryModel.dart';
 
 class StatisticsView extends StatefulWidget {
   const StatisticsView({super.key});
