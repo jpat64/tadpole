@@ -23,16 +23,16 @@ class _TodayViewState extends LocalStorageState<TodayView> {
   ThemeModel selectedTheme = ThemeModel.base();
   List<Symptom> symptoms = List<Symptom>.empty(growable: true);
   List<Activity> activities = List<Activity>.empty(growable: true);
-  List<Symptom> selectedSymptoms = List<Symptom>.empty(growable: true);
-  List<Activity> selectedActivities = List<Activity>.empty(growable: true);
+  List<Symptom>? selectedSymptoms;
+  List<Activity>? selectedActivities;
 
   // bleeding is in the form
-  bool bleeding = false;
-  int todayId = -1;
-  bool inPain = false;
-  int painLevel = 0;
-  bool flowing = false;
-  int flowLevel = 0;
+  bool? bleeding;
+  int? todayId;
+  bool? inPain;
+  int? painLevel;
+  bool? flowing;
+  int? flowLevel;
   Decimal? temperature;
   String? notes;
 
@@ -53,14 +53,16 @@ class _TodayViewState extends LocalStorageState<TodayView> {
       selectedTheme = theme;
       symptoms = s;
       activities = a;
-      bleeding = todayEntry?.bleeding ?? bleeding;
-      selectedSymptoms = todayEntry?.symptoms ?? selectedSymptoms;
-      selectedActivities = todayEntry?.activities ?? selectedActivities;
-      todayId = t;
-      inPain = ((todayEntry?.pain ?? painLevel) > 0);
-      painLevel = inPain ? todayEntry?.pain ?? painLevel : 0;
-      flowing = ((todayEntry?.flow ?? flowLevel) > 0);
-      flowLevel = flowing ? todayEntry?.flow ?? flowLevel : 0;
+      bleeding = bleeding ?? todayEntry?.bleeding;
+      selectedSymptoms = selectedSymptoms ?? todayEntry?.symptoms;
+      selectedActivities = selectedActivities ?? todayEntry?.activities;
+      todayId = todayId ?? t;
+      inPain =
+          inPain ?? (todayEntry?.pain != null ? todayEntry!.pain! > 0 : null);
+      painLevel = painLevel ?? todayEntry?.pain;
+      flowing =
+          flowing ?? (todayEntry?.flow != null ? todayEntry!.flow! > 0 : null);
+      flowLevel = flowLevel ?? todayEntry?.flow;
       temperature = temperature ?? todayEntry?.temperature;
       notes = notes ?? todayEntry?.notes;
     });
@@ -88,10 +90,10 @@ class _TodayViewState extends LocalStorageState<TodayView> {
                     Text(selectedTheme.bleedingQuestion),
                     const Spacer(),
                     Checkbox(
-                        value: bleeding,
+                        value: bleeding ?? false,
                         onChanged: (value) {
                           setState(() {
-                            bleeding = value ?? bleeding;
+                            bleeding = value!;
                           });
                         })
                   ],
@@ -103,19 +105,20 @@ class _TodayViewState extends LocalStorageState<TodayView> {
                         Text(selectedTheme.painQuestion),
                         const Spacer(),
                         Checkbox(
-                          value: inPain,
+                          value: inPain ?? false,
                           onChanged: (value) {
                             setState(() {
-                              inPain = value ?? inPain;
-                              painLevel = inPain ? 1 : 0;
+                              // checkbox value is always not null, since tristate is not true
+                              inPain = value!;
+                              painLevel = inPain! ? 1 : 0;
                             });
                           },
                         ),
                       ],
                     ),
-                    if (inPain)
+                    if (inPain ?? false)
                       Slider(
-                        value: painLevel.toDouble(),
+                        value: painLevel?.toDouble() ?? 1,
                         onChanged: (value) {
                           setState(() {
                             painLevel = value.toInt();
@@ -135,19 +138,20 @@ class _TodayViewState extends LocalStorageState<TodayView> {
                         Text(selectedTheme.flowQuestion),
                         const Spacer(),
                         Checkbox(
-                          value: flowing,
+                          value: flowing ?? false,
                           onChanged: (value) {
                             setState(() {
-                              flowing = value ?? flowing;
-                              flowLevel = flowing ? 1 : 0;
+                              // checkbox value will always be non-null, since tristate is false
+                              flowing = value!;
+                              flowLevel = flowing! ? 1 : 0;
                             });
                           },
                         ),
                       ],
                     ),
-                    if (flowing)
+                    if (flowing ?? false)
                       Slider(
-                        value: flowLevel.toDouble(),
+                        value: flowLevel?.toDouble() ?? 1,
                         onChanged: (value) {
                           setState(() {
                             flowLevel = value.toInt();
@@ -188,14 +192,16 @@ class _TodayViewState extends LocalStorageState<TodayView> {
                   ),
                 ]),
                 ExpansionTile(
-                    initiallyExpanded: selectedSymptoms.isNotEmpty,
+                    initiallyExpanded: selectedSymptoms?.isNotEmpty ?? false,
                     title: Text(selectedTheme.symptomQuestion),
                     children: symptoms.map<CheckboxListTile>((element) {
                       return CheckboxListTile(
-                        value: selectedSymptoms.contains(element),
+                        value: selectedSymptoms?.contains(element) ?? false,
                         title: Text("${element.text} (${element.id})"),
                         onChanged: (value) {
-                          List<Symptom> newSelectedSymptoms = selectedSymptoms;
+                          List<Symptom> newSelectedSymptoms =
+                              selectedSymptoms ??
+                                  List<Symptom>.empty(growable: true);
                           if (value == true) {
                             newSelectedSymptoms.add(element);
                           }
@@ -209,15 +215,16 @@ class _TodayViewState extends LocalStorageState<TodayView> {
                       );
                     }).toList()),
                 ExpansionTile(
-                    initiallyExpanded: selectedActivities.isNotEmpty,
+                    initiallyExpanded: selectedActivities?.isNotEmpty ?? false,
                     title: Text(selectedTheme.activityQuestion),
                     children: activities.map<CheckboxListTile>((element) {
                       return CheckboxListTile(
-                        value: selectedActivities.contains(element),
+                        value: selectedActivities?.contains(element) ?? false,
                         title: Text("${element.text} (${element.id})"),
                         onChanged: (value) {
                           List<Activity> newSelectedActivities =
-                              selectedActivities;
+                              selectedActivities ??
+                                  List<Activity>.empty(growable: true);
                           if (value == true) {
                             newSelectedActivities.add(element);
                           }
@@ -245,7 +252,7 @@ class _TodayViewState extends LocalStorageState<TodayView> {
                 ElevatedButton(
                   onPressed: () async {
                     bool success = await controller.addEntry(
-                        bleeding,
+                        bleeding ?? false,
                         painLevel,
                         flowLevel,
                         selectedSymptoms,
@@ -263,7 +270,7 @@ class _TodayViewState extends LocalStorageState<TodayView> {
                 ),
                 const Divider(height: 10),
                 Text(
-                  "symptoms count: ${selectedSymptoms.length} / ${symptoms.length}",
+                  "symptoms count: ${selectedSymptoms?.length ?? 'null'} / ${symptoms.length}",
                 ),
                 const Divider(height: 10),
                 if (entries != null)
