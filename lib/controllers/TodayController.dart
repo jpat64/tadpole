@@ -18,7 +18,6 @@ class TodayController extends BaseController {
       symptoms: symptoms,
       activities: activities,
     );
-    print("incoming entry: $entry");
     storageService.updateEntry(entry);
     return true;
   }

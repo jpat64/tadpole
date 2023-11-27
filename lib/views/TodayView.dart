@@ -292,7 +292,14 @@ class _TodayViewState extends LocalStorageState<TodayView> {
               Navigator.pushNamed(context, "/settings");
             },
             child: const Text("Settings"),
-          )
+          ),
+          const Spacer(),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pushNamed(context, "/statistics");
+            },
+            child: const Text("Statistics"),
+          ),
         ],
       ),
     );
