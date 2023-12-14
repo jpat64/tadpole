@@ -28,6 +28,7 @@ class _TodayViewState extends LocalStorageState<TodayView> {
 
   // bleeding is in the form
   bool? bleeding;
+  bool? newCycle;
   int? todayId;
   bool? inPain;
   int? painLevel;
@@ -54,6 +55,7 @@ class _TodayViewState extends LocalStorageState<TodayView> {
       symptoms = s;
       activities = a;
       bleeding = bleeding ?? todayEntry?.bleeding;
+      newCycle = newCycle ?? false;
       selectedSymptoms = selectedSymptoms ?? todayEntry?.symptoms;
       selectedActivities = selectedActivities ?? todayEntry?.activities;
       todayId = todayId ?? t;
@@ -94,6 +96,19 @@ class _TodayViewState extends LocalStorageState<TodayView> {
                         onChanged: (value) {
                           setState(() {
                             bleeding = value!;
+                          });
+                        })
+                  ],
+                ),
+                Row(
+                  children: [
+                    Text(selectedTheme.newCycleQuestion),
+                    const Spacer(),
+                    Checkbox(
+                        value: newCycle ?? false,
+                        onChanged: (value) {
+                          setState(() {
+                            newCycle = value!;
                           });
                         })
                   ],
@@ -253,6 +268,7 @@ class _TodayViewState extends LocalStorageState<TodayView> {
                   onPressed: () async {
                     bool success = await controller.addEntry(
                         bleeding ?? false,
+                        newCycle ?? false,
                         painLevel,
                         flowLevel,
                         selectedSymptoms,
@@ -277,7 +293,7 @@ class _TodayViewState extends LocalStorageState<TodayView> {
                   Column(
                     children: entries!.map<Text>((element) {
                       return Text(
-                          "${element.id} | ${element.bleeding} | Symptoms: ${element.symptoms?.length ?? 'null'}");
+                          "id: ${element.id} | cycle: ${element.cycle} | bleeding: ${element.bleeding} | Symptoms: ${element.symptoms?.length ?? 'null'}");
                     }).toList(),
                   )
               ],
@@ -287,6 +303,20 @@ class _TodayViewState extends LocalStorageState<TodayView> {
       ),
       bottomNavigationBar: Row(
         children: [
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pushNamed(context, "/forecast");
+            },
+            child: const Text("Forecast"),
+          ),
+          const Spacer(),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pushNamed(context, "/history");
+            },
+            child: const Text("History"),
+          ),
+          const Spacer(),
           ElevatedButton(
             onPressed: () {
               Navigator.pushNamed(context, "/settings");

@@ -2,6 +2,7 @@
 
 class ThemeModel {
   String bleedingQuestion;
+  String newCycleQuestion;
   String painQuestion;
   String flowQuestion;
   String temperatureQuestion;
@@ -12,6 +13,7 @@ class ThemeModel {
   ThemeModel({
     required this.id,
     required this.bleedingQuestion,
+    required this.newCycleQuestion,
     required this.painQuestion,
     required this.flowQuestion,
     required this.temperatureQuestion,
@@ -23,6 +25,8 @@ class ThemeModel {
     return ThemeModel(
       id: json['id'] ?? 0,
       bleedingQuestion: json['bleeding_question'] ?? "Are you bleeding?",
+      newCycleQuestion:
+          json['new_cycle_question'] ?? "Does today start a new cycle?",
       painQuestion:
           json['pain_question'] ?? "From 1 to 5, what's your pain level?",
       flowQuestion:
@@ -38,6 +42,7 @@ class ThemeModel {
   static ThemeModel base({
     id = 0,
     bleedingQuestion = "Are you bleeding?",
+    newCycleQuestion = "Does today start a new cycle?",
     painQuestion = "From 1 to 5, what's your pain level?",
     flowQuestion = "From 1 to 5, how heavy is your flow?",
     temperatureQuestion = "What's your temperature?",
@@ -47,6 +52,7 @@ class ThemeModel {
     return ThemeModel(
       id: id,
       bleedingQuestion: bleedingQuestion,
+      newCycleQuestion: newCycleQuestion,
       painQuestion: painQuestion,
       flowQuestion: flowQuestion,
       temperatureQuestion: temperatureQuestion,
@@ -59,6 +65,7 @@ class ThemeModel {
     return {
       "id": id,
       "bleeding_question": bleedingQuestion,
+      "new_cycle_question": newCycleQuestion,
       "pain_question": painQuestion,
       "flow_question": flowQuestion,
       "temperature_question": temperatureQuestion,
