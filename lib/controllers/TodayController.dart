@@ -6,11 +6,23 @@ import 'package:tadpole/models/EntryModel.dart';
 import 'package:tadpole/services/StorageService.dart';
 
 class TodayController extends BaseController {
-  Future<bool> addEntry(bool bleeding, int? painLevel, int? flowLevel,
-      List<Symptom>? symptoms, List<Activity>? activities) async {
+  Future<bool> addEntry(
+      bool bleeding,
+      bool newCycle,
+      int? painLevel,
+      int? flowLevel,
+      List<Symptom>? symptoms,
+      List<Activity>? activities) async {
+    int cycleNumber =
+        await storageService.getStoredInt(StorageService.NEXT_CYCLE_NUMBER);
+    if (newCycle) {
+      cycleNumber += 1;
+      var success = await storageService.setStoredInt(
+          StorageService.NEXT_CYCLE_NUMBER, cycleNumber);
+      if (!success) print("ERROR- unable to increment cycle number");
+    }
     Entry entry = Entry(
-      cycle:
-          await storageService.getStoredInt(StorageService.NEXT_CYCLE_NUMBER),
+      cycle: cycleNumber,
       id: getTodayId(),
       pain: painLevel,
       flow: flowLevel,

@@ -53,6 +53,16 @@ class StorageService {
     }
   }
 
+  Future<bool> setStoredInt(String variableName, int value) async {
+    final prefs = await SharedPreferences.getInstance();
+    try {
+      prefs.setInt(variableName, value);
+      return true;
+    } catch (e) {
+      throw Exception("Error writing value $variableName: $e");
+    }
+  }
+
   Future<bool> setStoredString(String variableName, String value) async {
     final prefs = await SharedPreferences.getInstance();
     try {
@@ -331,7 +341,9 @@ class StorageService {
       entryWithActivity.activities!.add(activityWithEntry);
       entriesDecompressed[entryActivity.first] = entryWithActivity;
     }
-    return entriesDecompressed.values.toList();
+    List<Entry> entriesList = entriesDecompressed.values.toList();
+    entriesList.sort((e1, e2) => e1.id - e2.id);
+    return entriesList;
   }
 
   Future<List<Symptom>> getSymptoms() async {

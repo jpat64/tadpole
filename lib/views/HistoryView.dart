@@ -1,7 +1,9 @@
 // ignore_for_file: file_names
 
 import 'package:flutter/material.dart';
+import 'package:tadpole/controllers/HistoryController.dart';
 import 'package:tadpole/helpers/LocalStorageState.dart';
+import 'package:tadpole/models/EntryModel.dart';
 
 class HistoryView extends StatefulWidget {
   const HistoryView({super.key});
@@ -11,9 +13,18 @@ class HistoryView extends StatefulWidget {
 }
 
 class _HistoryViewState extends LocalStorageState<HistoryView> {
+  bool initialLoad = true;
+
+  HistoryController controller = HistoryController();
+
+  List<Entry>? entries;
+
   @override
-  void initState() {
-    super.initState();
+  Future<void> loadLocalData() async {
+    if (initialLoad) {
+      initialLoad = false;
+      entries = await controller.getEntries();
+    }
   }
 
   @override
@@ -22,7 +33,8 @@ class _HistoryViewState extends LocalStorageState<HistoryView> {
       appBar: AppBar(
         title: const Text("History View"),
       ),
-      body: Container(),
+      body: Container(
+          child: Text("number of entries: ${entries?.length ?? 'null'}")),
     );
   }
 }
