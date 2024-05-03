@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "tadpole" "\0"
+            VALUE "FileDescription", "moonbase" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "tadpole" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2023 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "tadpole.exe" "\0"
-            VALUE "ProductName", "tadpole" "\0"
+            VALUE "InternalName", "moonbase" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2024 com.example. All rights reserved." "\0"
+            VALUE "OriginalFilename", "moonbase.exe" "\0"
+            VALUE "ProductName", "moonbase" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END
