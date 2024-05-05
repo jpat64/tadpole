@@ -4,7 +4,9 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:moonbase/models/DailyEntry.dart';
 import 'package:moonbase/services/DatabaseService.dart';
+import 'package:moonbase/utils/DateTimeUtils.dart';
 
 class InitializationScreen extends StatefulWidget {
   const InitializationScreen({super.key});
@@ -19,13 +21,20 @@ class InitializationScreen extends StatefulWidget {
 class _InitializationScreenState extends State<InitializationScreen> {
   Future<void> setup() async {
     await DatabaseService.initialize();
+    // DEBUG MODE: ADD AN ENTRY FOR YESTERDAY
+    DatabaseService instance = DatabaseService.instance();
+    await instance.addDailyEntry(DailyEntry(
+        isActive: true,
+        notes: "Notey wotey",
+        epochDate: DateTimeUtils.epochDays(
+            DateUtils.addDaysToDate(DateTime.now(), -1))));
   }
 
   @override
   Widget build(BuildContext context) {
     WidgetsBinding.instance.addPostFrameCallback((timestamp) async {
       await setup();
-      if (!mounted) return;
+      if (!context.mounted) return;
       context.goNamed("/calendar");
     });
 

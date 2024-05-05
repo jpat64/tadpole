@@ -1,7 +1,9 @@
 // ignore_for_file: file_names
 
 import 'package:flutter/material.dart';
-import 'package:moonbase/utils/arrangeMonth.dart';
+import 'package:moonbase/services/DatabaseService.dart';
+import 'package:moonbase/utils/DateTimeUtils.dart';
+import 'package:moonbase/utils/Tuple.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -13,21 +15,33 @@ class CalendarScreen extends StatefulWidget {
 }
 
 class _CalendarScreenState extends State<CalendarScreen> {
-  Column getCalendar() {
-    List<List<String>> boxNames = arrangeMonth(DateTime.now());
+  Column getCalendar(BuildContext context, DateTime dateTime) {
+    DatabaseService instance = DatabaseService.instance();
+    List<List<Tuple<String, DateTime>>> boxNames =
+        DateTimeUtils.arrangeMonth(dateTime);
     return Column(
       children: boxNames.map<Row>((element) {
         return Row(
-          children: element.map<TextButton>((subelement) {
-            return TextButton(
-              style: TextButton.styleFrom(
-                backgroundColor:
-                    (subelement.contains("!")) ? Colors.yellow : Colors.white,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: element.map<Widget>((subelement) {
+            return SizedBox(
+              height: MediaQuery.of(context).size.height * 0.05,
+              width: MediaQuery.of(context).size.width * 0.125,
+              child: TextButton(
+                style: TextButton.styleFrom(
+                  textStyle: (instance.isEntryActiveForDay(subelement.last))
+                      ? const TextStyle(fontWeight: FontWeight.bold)
+                      : null,
+                  backgroundColor: (DateUtils.dateOnly(subelement.last) ==
+                          DateUtils.dateOnly(DateTime.now()))
+                      ? Colors.yellow
+                      : Colors.white,
+                ),
+                onPressed: () {
+                  print("${subelement.first} pressed");
+                },
+                child: Text(subelement.first),
               ),
-              onPressed: () {
-                print("$subelement pressed");
-              },
-              child: Text(subelement.replaceAll("!", "")),
             );
           }).toList(),
         );
@@ -39,7 +53,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Calendar")),
-      body: getCalendar(),
+      body: Container(
+        padding: const EdgeInsets.all(16),
+        child: getCalendar(context, DateTime.now()),
+      ),
     );
   }
 }
