@@ -5,8 +5,12 @@ import 'package:moonbase/services/DatabaseService.dart';
 import 'package:moonbase/utils/DateTimeUtils.dart';
 import 'package:moonbase/utils/Tuple.dart';
 
+import 'package:intl/intl.dart';
+
 class CalendarScreen extends StatefulWidget {
-  const CalendarScreen({super.key});
+  const CalendarScreen({super.key, required this.dateTimeString});
+
+  final String dateTimeString;
 
   @override
   State<StatefulWidget> createState() => _CalendarScreenState();
@@ -15,47 +19,115 @@ class CalendarScreen extends StatefulWidget {
 }
 
 class _CalendarScreenState extends State<CalendarScreen> {
+  DateTime? relevantDateTime;
+
+  DateFormat monthYear = DateFormat("MMMM, yyyy");
+
+  @override
+  void initState() {
+    super.initState();
+
+    relevantDateTime = DateTime.parse(widget.dateTimeString);
+  }
+
   Column getCalendar(BuildContext context, DateTime dateTime) {
     DatabaseService instance = DatabaseService.instance();
+    List<String> dayOfWeekNames = ["S", "M", "T", "W", "R", "F", "S"];
     List<List<Tuple<String, DateTime>>> boxNames =
         DateTimeUtils.arrangeMonth(dateTime);
     return Column(
-      children: boxNames.map<Row>((element) {
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: element.map<Widget>((subelement) {
-            return SizedBox(
-              height: MediaQuery.of(context).size.height * 0.05,
-              width: MediaQuery.of(context).size.width * 0.125,
-              child: TextButton(
-                style: TextButton.styleFrom(
-                  textStyle: (instance.isEntryActiveForDay(subelement.last))
-                      ? const TextStyle(fontWeight: FontWeight.bold)
-                      : null,
-                  backgroundColor: (DateUtils.dateOnly(subelement.last) ==
-                          DateUtils.dateOnly(DateTime.now()))
-                      ? Colors.yellow
-                      : Colors.white,
-                ),
-                onPressed: () {
-                  print("${subelement.first} pressed");
-                },
-                child: Text(subelement.first),
+      children: <Widget>[
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: const BoxDecoration(
+                  border: Border(
+                      bottom: BorderSide(color: Colors.black, width: 3))),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: dayOfWeekNames.map<Widget>((element) {
+                  return SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.025,
+                    width: MediaQuery.of(context).size.width * 0.125,
+                    child: Text(
+                      element,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+            const SizedBox(height: 12),
+          ] +
+          boxNames.map<Widget>((element) {
+            return Container(
+              padding: const EdgeInsets.all(4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: element.map<Widget>((subelement) {
+                  return SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.1,
+                    width: MediaQuery.of(context).size.width * 0.125,
+                    child: (subelement.first != "--")
+                        ? Container(
+                            decoration: BoxDecoration(
+                              color: (DateUtils.dateOnly(subelement.last) ==
+                                      DateUtils.dateOnly(DateTime.now()))
+                                  ? Colors.yellow[100]
+                                  : Colors.grey[50],
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(5)),
+                              border: const Border.fromBorderSide(
+                                BorderSide(color: Colors.black54, width: 1),
+                              ),
+                            ),
+                            child: TextButton(
+                              style: TextButton.styleFrom(
+                                textStyle: (instance
+                                        .isEntryActiveForDay(subelement.last))
+                                    ? const TextStyle(
+                                        fontWeight: FontWeight.bold)
+                                    : null,
+                              ),
+                              onPressed: () {
+                                print("${subelement.first} pressed");
+                              },
+                              child: Text(subelement.first),
+                            ),
+                          )
+                        : null,
+                  );
+                }).toList(),
               ),
             );
           }).toList(),
-        );
-      }).toList(),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Calendar")),
+      appBar: AppBar(
+        title: Container(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text("Calendar"),
+              Text(
+                monthYear.format(relevantDateTime!).replaceAll(",", "\t"),
+              ),
+            ],
+          ),
+        ),
+      ),
       body: Container(
         padding: const EdgeInsets.all(16),
-        child: getCalendar(context, DateTime.now()),
+        child: getCalendar(
+          context,
+          relevantDateTime!,
+        ),
       ),
     );
   }

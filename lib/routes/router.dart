@@ -10,9 +10,10 @@ final GoRouter router = GoRouter(
       builder: (context, state) => const InitializationScreen(),
     ),
     GoRoute(
-      path: CalendarScreen.name,
+      path: "${CalendarScreen.name}/:dateTimeString",
       name: CalendarScreen.name,
-      builder: (context, state) => const CalendarScreen(),
+      builder: (context, state) => CalendarScreen(
+          dateTimeString: state.pathParameters['dateTimeString'] as String),
     )
   ],
 );
