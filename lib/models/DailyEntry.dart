@@ -15,4 +15,10 @@ class DailyEntry {
   int epochDate;
 
   DailyEntry({required this.isActive, this.notes, required this.epochDate});
+
+  String get id => "E$epochDate";
+
+  static String generateId(int epochDate) {
+    return "E$epochDate";
+  }
 }

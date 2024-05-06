@@ -8,7 +8,11 @@ class DateTimeUtils {
     return (dateTime.millisecondsSinceEpoch / (86400 * 1000)).ceil();
   }
 
-// always returns 6 lists of 7 strings, with the strings being the day
+  static DateTime dateFromEpochDays(int epochDays) {
+    return DateTime.fromMillisecondsSinceEpoch(epochDays * 86400 * 1000);
+  }
+
+  // always returns 6 lists of 7 strings, with the strings being the day
   static List<List<Tuple<String, DateTime>>> arrangeMonth(DateTime? dateTime) {
     dateTime ??= DateTime.now();
 

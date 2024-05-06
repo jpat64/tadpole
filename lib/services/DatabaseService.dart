@@ -3,7 +3,6 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:moonbase/models/DailyEntry.dart';
 import 'package:moonbase/services/Logger.dart';
-import 'package:moonbase/utils/DateTimeUtils.dart';
 
 class DatabaseService {
   static final DatabaseService _instance = DatabaseService();
@@ -33,14 +32,27 @@ class DatabaseService {
     }
   }
 
-  bool isEntryActiveForDay(DateTime dateTime) {
-    int epochDays = DateTimeUtils.epochDays(dateTime);
-    return _dailyEntryBox.get("E$epochDays") != null;
+  bool isEntryActiveForDay(int epochDate) {
+    return _dailyEntryBox.get(DailyEntry.generateId(epochDate)) != null;
+  }
+
+  DailyEntry? getDailyEntry(int epochDate) {
+    return _dailyEntryBox.get(DailyEntry.generateId(epochDate));
   }
 
   Future<bool> addDailyEntry(DailyEntry entry) async {
     try {
-      await _dailyEntryBox.put(entry.epochDate, entry);
+      await _dailyEntryBox.put(entry.id, entry);
+      return true;
+    } catch (e) {
+      Logger.warning(e.toString());
+      return false;
+    }
+  }
+
+  Future<bool> removeDailyEntry(String id) async {
+    try {
+      await _dailyEntryBox.delete(id);
       return true;
     } catch (e) {
       Logger.warning(e.toString());

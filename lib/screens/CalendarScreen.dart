@@ -1,6 +1,9 @@
 // ignore_for_file: file_names
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:moonbase/components/LoadingWidget.dart';
+import 'package:moonbase/screens/EntryScreen.dart';
 import 'package:moonbase/services/DatabaseService.dart';
 import 'package:moonbase/utils/DateTimeUtils.dart';
 import 'package:moonbase/utils/Tuple.dart';
@@ -8,9 +11,9 @@ import 'package:moonbase/utils/Tuple.dart';
 import 'package:intl/intl.dart';
 
 class CalendarScreen extends StatefulWidget {
-  const CalendarScreen({super.key, required this.dateTimeString});
+  const CalendarScreen({super.key, required this.epochDate});
 
-  final String dateTimeString;
+  final int epochDate;
 
   @override
   State<StatefulWidget> createState() => _CalendarScreenState();
@@ -21,15 +24,15 @@ class CalendarScreen extends StatefulWidget {
 class _CalendarScreenState extends State<CalendarScreen> {
   DateTime? relevantDateTime;
 
-  DateFormat monthYear = DateFormat("MMMM, yyyy");
+  DateFormat monthYear = DateFormat("MMMM yyyy");
 
   @override
   void initState() {
     super.initState();
-
-    relevantDateTime = DateTime.parse(widget.dateTimeString);
+    relevantDateTime = DateTimeUtils.dateFromEpochDays(widget.epochDate);
   }
 
+  // WIDGET HELPER METHOD
   Column getCalendar(BuildContext context, DateTime dateTime) {
     DatabaseService instance = DatabaseService.instance();
     List<String> dayOfWeekNames = ["S", "M", "T", "W", "R", "F", "S"];
@@ -84,13 +87,24 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             ),
                             child: TextButton(
                               style: TextButton.styleFrom(
-                                textStyle: (instance
-                                        .isEntryActiveForDay(subelement.last))
-                                    ? const TextStyle(
-                                        fontWeight: FontWeight.bold)
-                                    : null,
+                                textStyle: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: (instance.isEntryActiveForDay(
+                                            DateTimeUtils.epochDays(
+                                                subelement.last)))
+                                        ? FontWeight.bold
+                                        : FontWeight.normal),
                               ),
                               onPressed: () {
+                                int epochDate = DateTimeUtils.epochDays(
+                                    DateUtils.addDaysToDate(
+                                        dateTime,
+                                        (int.parse(subelement.first) -
+                                            dateTime.day)));
+                                context.goNamed(EntryScreen.name,
+                                    pathParameters: {
+                                      "epochDate": "$epochDate"
+                                    });
                                 print("${subelement.first} pressed");
                               },
                               child: Text(subelement.first),
@@ -116,7 +130,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             children: [
               const Text("Calendar"),
               Text(
-                monthYear.format(relevantDateTime!).replaceAll(",", "\t"),
+                monthYear.format(relevantDateTime!),
               ),
             ],
           ),
@@ -124,10 +138,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
       ),
       body: Container(
         padding: const EdgeInsets.all(16),
-        child: getCalendar(
-          context,
-          relevantDateTime!,
-        ),
+        child: relevantDateTime != null
+            ? getCalendar(
+                context,
+                relevantDateTime!,
+              )
+            : const LoadingWidget(),
       ),
     );
   }
