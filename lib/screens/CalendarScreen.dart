@@ -3,9 +3,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moonbase/components/LoadingWidget.dart';
+import 'package:moonbase/components/MoonbaseBottomBar.dart';
 import 'package:moonbase/screens/EntryScreen.dart';
 import 'package:moonbase/services/DatabaseService.dart';
 import 'package:moonbase/utils/DateTimeUtils.dart';
+import 'package:moonbase/utils/Palette.dart';
 import 'package:moonbase/utils/Tuple.dart';
 
 import 'package:intl/intl.dart';
@@ -19,6 +21,8 @@ class CalendarScreen extends StatefulWidget {
   State<StatefulWidget> createState() => _CalendarScreenState();
 
   static const String name = "/calendar";
+  static const int navIndex = 0;
+  static int defaultEpochDate = DateTimeUtils.epochDays(DateTime.now());
 }
 
 class _CalendarScreenState extends State<CalendarScreen> {
@@ -42,9 +46,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
       children: <Widget>[
             Container(
               padding: const EdgeInsets.all(4),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                   border: Border(
-                      bottom: BorderSide(color: Colors.black, width: 3))),
+                      bottom: BorderSide(
+                          color: Theme.of(context).colorScheme.background,
+                          width: 3))),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: dayOfWeekNames.map<Widget>((element) {
@@ -73,42 +79,28 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     height: MediaQuery.of(context).size.height * 0.1,
                     width: MediaQuery.of(context).size.width * 0.125,
                     child: (subelement.first != "--")
-                        ? Container(
-                            decoration: BoxDecoration(
-                              color: (DateUtils.dateOnly(subelement.last) ==
-                                      DateUtils.dateOnly(DateTime.now()))
-                                  ? Colors.yellow[100]
-                                  : Colors.grey[50],
-                              borderRadius:
-                                  const BorderRadius.all(Radius.circular(5)),
-                              border: const Border.fromBorderSide(
-                                BorderSide(color: Colors.black54, width: 1),
-                              ),
+                        ? TextButton(
+                            style: TextButton.styleFrom(
+                              shape: const RoundedRectangleBorder(),
+                              textStyle: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: (instance.isEntryActiveForDay(
+                                          DateTimeUtils.epochDays(
+                                              subelement.last)))
+                                      ? FontWeight.bold
+                                      : FontWeight.normal),
                             ),
-                            child: TextButton(
-                              style: TextButton.styleFrom(
-                                textStyle: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: (instance.isEntryActiveForDay(
-                                            DateTimeUtils.epochDays(
-                                                subelement.last)))
-                                        ? FontWeight.bold
-                                        : FontWeight.normal),
-                              ),
-                              onPressed: () {
-                                int epochDate = DateTimeUtils.epochDays(
-                                    DateUtils.addDaysToDate(
-                                        dateTime,
-                                        (int.parse(subelement.first) -
-                                            dateTime.day)));
-                                context.goNamed(EntryScreen.name,
-                                    pathParameters: {
-                                      "epochDate": "$epochDate"
-                                    });
-                                print("${subelement.first} pressed");
-                              },
-                              child: Text(subelement.first),
-                            ),
+                            onPressed: () {
+                              int epochDate = DateTimeUtils.epochDays(
+                                  DateUtils.addDaysToDate(
+                                      dateTime,
+                                      (int.parse(subelement.first) -
+                                          dateTime.day)));
+                              context.goNamed(EntryScreen.name,
+                                  pathParameters: {"epochDate": "$epochDate"});
+                              print("${subelement.first} pressed");
+                            },
+                            child: Text(subelement.first),
                           )
                         : null,
                   );
@@ -123,12 +115,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Container(
           padding: const EdgeInsets.all(16),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text("Calendar"),
               Text(
                 monthYear.format(relevantDateTime!),
               ),
@@ -145,6 +137,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
               )
             : const LoadingWidget(),
       ),
+      bottomNavigationBar:
+          const MoonbaseBottomBar(selectedIndex: CalendarScreen.navIndex),
     );
   }
 }

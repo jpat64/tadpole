@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:moonbase/routes/router.dart';
+import 'package:moonbase/utils/Palette.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,10 +16,8 @@ class Moonbase extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
+      theme: ThemeData(colorScheme: Palette.lightTheme),
+      darkTheme: ThemeData(colorScheme: Palette.darkTheme),
       routerConfig: router,
     );
   }

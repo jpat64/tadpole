@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moonbase/components/LoadingWidget.dart';
+import 'package:moonbase/components/MoonbaseBottomBar.dart';
 import 'package:moonbase/models/DailyEntry.dart';
 import 'package:moonbase/services/DatabaseService.dart';
 import 'package:moonbase/services/Logger.dart';
@@ -19,6 +20,8 @@ class EntryScreen extends StatefulWidget {
   State<StatefulWidget> createState() => _EntryScreenState();
 
   static const String name = "/entry";
+  static const int navIndex = 1;
+  static int defaultEpochDate = DateTimeUtils.epochDays(DateTime.now());
 }
 
 class _EntryScreenState extends State<EntryScreen> {
@@ -84,10 +87,16 @@ class _EntryScreenState extends State<EntryScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text("Entry"),
                 Text(
                   dayMonthYear.format(relevantDateTime!),
                 ),
+                IconButton(
+                    icon: const Icon(Icons.edit),
+                    onPressed: () {
+                      setState(() {
+                        editingMode = !editingMode;
+                      });
+                    })
               ],
             ),
           ),
@@ -96,124 +105,111 @@ class _EntryScreenState extends State<EntryScreen> {
             padding: const EdgeInsets.all(16),
             child: loaded
                 ? Column(children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: const BoxDecoration(
-                          border: Border(
-                              bottom:
-                                  BorderSide(color: Colors.black54, width: 2))),
-                      child: ListTile(
-                        trailing: Switch(
-                          value: editingMode,
-                          onChanged: (value) {
-                            setState(() {
-                              editingMode = value;
-                            });
-                          },
-                        ),
-                        title: const Text("Edit"),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    // the form
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: const BoxDecoration(
-                          border: Border(
-                              bottom:
-                                  BorderSide(color: Colors.black54, width: 2))),
-                      child: CheckboxListTile(
-                        value: isActive,
-                        enabled: editingMode,
-                        onChanged: (value) {
-                          setState(() {
-                            isActive = value ?? false;
-                          });
-                        },
-                        title: const Text("active?"),
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: const BoxDecoration(
-                          border: Border(
-                              bottom:
-                                  BorderSide(color: Colors.black54, width: 2))),
-                      child: ListTile(
-                        title: TextField(
-                          controller: notesTextController,
-                          enabled: editingMode,
-                          onChanged: (value) {
-                            setState(() {
-                              notes = value;
-                            });
-                          },
-                          maxLines: 10,
-                          minLines: 6,
-                        ),
-                      ),
+                    Card(
+                      child: Container(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(children: [
+                            // the form
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              child: CheckboxListTile(
+                                value: isActive,
+                                enabled: editingMode,
+                                onChanged: (value) {
+                                  setState(() {
+                                    isActive = value ?? false;
+                                  });
+                                },
+                                title: const Text("active?"),
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              child: TextField(
+                                decoration: const InputDecoration(
+                                    helperText: "Enter any notes here."),
+                                controller: notesTextController,
+                                enabled: editingMode,
+                                onChanged: (value) {
+                                  setState(() {
+                                    notes = value;
+                                  });
+                                },
+                                maxLines: 10,
+                                minLines: 6,
+                              ),
+                            ),
+                          ])),
                     ),
                     const Spacer(),
                     // submitting the form
-                    Row(children: [
-                      TextButton(
-                          onPressed: () async {
-                            DatabaseService instance =
-                                DatabaseService.instance();
-                            bool success =
-                                await instance.addDailyEntry(DailyEntry(
-                              epochDate: epochDate,
-                              isActive: isActive,
-                              notes: notes,
-                            ));
-                            if (success) {
-                              setState(() {
-                                loaded = false;
-                              });
-                            } else {
-                              Logger.warning(
-                                  "Adding Daily Entry Failed: $epochDate, $isActive, $notes");
-                            }
-                          },
-                          child: const Text("Save")),
-                      IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () {
-                          showDialog(
-                              context: context,
-                              builder: (context) => AlertDialog(actions: [
-                                    TextButton(
-                                        onPressed: () => context.pop(),
-                                        child: const Text("Cancel")),
-                                    TextButton(
-                                        onPressed: () async {
-                                          DatabaseService instance =
-                                              DatabaseService.instance();
-                                          bool success =
-                                              await instance.removeDailyEntry(
-                                                  DailyEntry.generateId(
-                                                      epochDate));
-                                          if (!context.mounted) return;
-                                          context.pop();
-                                          Logger.info(
-                                              "Deleting entry E$epochDate: $success, proof: ${instance.getDailyEntry(epochDate)}");
-                                          if (success) {
-                                            setState(() {
-                                              loaded = false;
-                                            });
-                                          }
-                                        },
-                                        child: Text("Delete this Entry",
-                                            style: TextStyle(
-                                                backgroundColor:
-                                                    Colors.red[400],
-                                                color: Colors.white))),
-                                  ]));
-                        },
-                      )
-                    ])
+                    Container(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton(
+                                onPressed: () async {
+                                  DatabaseService instance =
+                                      DatabaseService.instance();
+                                  bool success =
+                                      await instance.addDailyEntry(DailyEntry(
+                                    epochDate: epochDate,
+                                    isActive: isActive,
+                                    notes: notes,
+                                  ));
+                                  if (success) {
+                                    setState(() {
+                                      loaded = false;
+                                    });
+                                  } else {
+                                    Logger.warning(
+                                        "Adding Daily Entry Failed: $epochDate, $isActive, $notes");
+                                  }
+                                },
+                                child: const Text("Save")),
+                            const SizedBox(width: 24),
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () {
+                                showDialog(
+                                    context: context,
+                                    builder: (context) => AlertDialog(actions: [
+                                          TextButton(
+                                              onPressed: () => context.pop(),
+                                              child: const Text("Cancel")),
+                                          TextButton(
+                                              onPressed: () async {
+                                                DatabaseService instance =
+                                                    DatabaseService.instance();
+                                                bool success = await instance
+                                                    .removeDailyEntry(
+                                                        DailyEntry.generateId(
+                                                            epochDate));
+                                                if (!context.mounted) return;
+                                                context.pop();
+                                                Logger.info(
+                                                    "Deleting entry E$epochDate: $success, proof: ${instance.getDailyEntry(epochDate)}");
+                                                if (success) {
+                                                  setState(() {
+                                                    loaded = false;
+                                                  });
+                                                }
+                                              },
+                                              child: Text("Delete this Entry",
+                                                  style: TextStyle(
+                                                      backgroundColor:
+                                                          Colors.red[400],
+                                                      color: Colors.white))),
+                                        ]));
+                              },
+                            )
+                          ]),
+                    )
                   ])
                 : const LoadingWidget()),
+        bottomNavigationBar:
+            const MoonbaseBottomBar(selectedIndex: EntryScreen.navIndex),
       ),
     );
   }
