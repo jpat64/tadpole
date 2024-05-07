@@ -10,6 +10,7 @@ import 'package:moonbase/services/Logger.dart';
 import 'package:moonbase/utils/DateTimeUtils.dart';
 
 import 'package:intl/intl.dart';
+import 'package:moonbase/utils/ThemeUtils.dart';
 
 class EntryScreen extends StatefulWidget {
   const EntryScreen({super.key, required this.epochDate});
@@ -123,22 +124,24 @@ class _EntryScreenState extends State<EntryScreen> {
                                 title: const Text("active?"),
                               ),
                             ),
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              child: TextField(
-                                decoration: const InputDecoration(
-                                    helperText: "Enter any notes here."),
-                                controller: notesTextController,
-                                enabled: editingMode,
-                                onChanged: (value) {
-                                  setState(() {
-                                    notes = value;
-                                  });
-                                },
-                                maxLines: 10,
-                                minLines: 6,
-                              ),
-                            ),
+                            editingMode
+                                ? Container(
+                                    padding: const EdgeInsets.all(8),
+                                    child: TextField(
+                                      decoration: const InputDecoration(
+                                          helperText: "Enter any notes here."),
+                                      controller: notesTextController,
+                                      enabled: editingMode,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          notes = value;
+                                        });
+                                      },
+                                      maxLines: 10,
+                                      minLines: 6,
+                                    ),
+                                  )
+                                : Text(notesTextController.text),
                           ])),
                     ),
                     const Spacer(),
@@ -149,6 +152,8 @@ class _EntryScreenState extends State<EntryScreen> {
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             TextButton(
+                                style: ThemeUtils.successButtonStyle(
+                                    Theme.of(context).colorScheme),
                                 onPressed: () async {
                                   DatabaseService instance =
                                       DatabaseService.instance();
@@ -170,6 +175,8 @@ class _EntryScreenState extends State<EntryScreen> {
                                 child: const Text("Save")),
                             const SizedBox(width: 24),
                             IconButton(
+                              style: ThemeUtils.dangerButtonStyle(
+                                  Theme.of(context).colorScheme),
                               icon: const Icon(Icons.delete),
                               onPressed: () {
                                 showDialog(

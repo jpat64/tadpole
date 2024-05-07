@@ -7,7 +7,6 @@ import 'package:moonbase/components/MoonbaseBottomBar.dart';
 import 'package:moonbase/screens/EntryScreen.dart';
 import 'package:moonbase/services/DatabaseService.dart';
 import 'package:moonbase/utils/DateTimeUtils.dart';
-import 'package:moonbase/utils/Palette.dart';
 import 'package:moonbase/utils/Tuple.dart';
 
 import 'package:intl/intl.dart';

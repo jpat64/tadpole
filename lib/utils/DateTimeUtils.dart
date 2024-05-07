@@ -1,24 +1,23 @@
-// ignore_for_file: file_names
+// ignore_for_file: file_names, constant_identifier_names
 
 import 'package:flutter/material.dart';
 import 'package:moonbase/utils/Tuple.dart';
 
 class DateTimeUtils {
+  static const int MILLIS_PER_DAY = 86400 * 1000;
+
   static int epochDays(DateTime dateTime) {
-    return (dateTime.millisecondsSinceEpoch / (86400 * 1000)).ceil();
+    return (dateTime.millisecondsSinceEpoch / MILLIS_PER_DAY).ceil();
   }
 
   static DateTime dateFromEpochDays(int epochDays) {
-    return DateTime.fromMillisecondsSinceEpoch(epochDays * 86400 * 1000);
+    return DateTime.fromMillisecondsSinceEpoch(epochDays * MILLIS_PER_DAY);
   }
 
   // always returns 6 lists of 7 strings, with the strings being the day
   static List<List<Tuple<String, DateTime>>> arrangeMonth(DateTime? dateTime) {
     dateTime ??= DateTime.now();
 
-    // week format:   S M T W R F S
-    // in ISO:        7 1 2 3 4 5 6
-    // want it to be: 0 1 2 3 4 5 6
     int daysInMonth = DateUtils.getDaysInMonth(dateTime.year, dateTime.month);
     int dateOffset = DateUtils.firstDayOffset(
         dateTime.year, dateTime.month, const DefaultMaterialLocalizations());

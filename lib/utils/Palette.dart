@@ -3,36 +3,38 @@
 import 'package:flutter/material.dart';
 
 class Palette {
-  static ColorScheme lightTheme = ColorScheme(
+  static ColorScheme lightScheme = ColorScheme(
     brightness: Brightness.light,
-    background: neutral[200]!,
+    background: neutral[100]!,
     onBackground: black,
     primary: manila[300]!,
     onPrimary: black,
     secondary: info[300]!,
     onSecondary: black,
-    surface: neutral[300]!,
+    surface: neutral[200]!,
     onSurface: black,
     error: error[400]!,
     onError: black,
     tertiary: warning[400]!,
     onTertiary: black,
+    outline: black,
   );
 
-  static ColorScheme darkTheme = ColorScheme(
+  static ColorScheme darkScheme = ColorScheme(
     brightness: Brightness.light,
-    background: neutral[200]!,
-    onBackground: black,
-    primary: manila[300]!,
-    onPrimary: black,
-    secondary: info[300]!,
-    onSecondary: black,
-    surface: neutral[300]!,
-    onSurface: black,
-    error: error[400]!,
-    onError: black,
-    tertiary: warning[400]!,
-    onTertiary: black,
+    background: neutral[900]!,
+    onBackground: white,
+    primary: manila[700]!,
+    onPrimary: white,
+    secondary: info[700]!,
+    onSecondary: white,
+    surface: neutral[800]!,
+    onSurface: white,
+    error: error[600]!,
+    onError: white,
+    tertiary: warning[600]!,
+    onTertiary: white,
+    outline: white,
   );
 
   static const MaterialColor manila = MaterialColor(0xffc99f38, {
