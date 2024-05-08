@@ -9,14 +9,14 @@ import 'package:moonbase/utils/data/Triple.dart';
 class MoonbaseDayButton extends StatelessWidget {
   final Color textColor;
   final Color backgroundColor;
-  final Color hoverColor;
+  final Color darkerBackgroundColor;
   final Triple<String, DateTime, bool?> data;
 
   const MoonbaseDayButton(
       {super.key,
       required this.textColor,
-      required this.hoverColor,
       required this.backgroundColor,
+      required this.darkerBackgroundColor,
       required this.data});
 
   @override
@@ -24,7 +24,8 @@ class MoonbaseDayButton extends StatelessWidget {
     return TextButton(
       style: TextButton.styleFrom(
         backgroundColor: backgroundColor,
-        shape: const RoundedRectangleBorder(),
+        shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(topLeft: Radius.circular(15))),
       ),
       onPressed: () {
         context.goNamed("/entry", pathParameters: <String, String>{
@@ -35,9 +36,16 @@ class MoonbaseDayButton extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(
-            data.first,
-            style: TextStyle(fontSize: 16, color: textColor),
+          Container(
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(color: darkerBackgroundColor, width: 2),
+              ),
+            ),
+            child: Text(
+              data.first,
+              style: TextStyle(fontSize: 16, color: textColor),
+            ),
           ),
           const Spacer(),
           if (data.third != null)

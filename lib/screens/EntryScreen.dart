@@ -29,7 +29,7 @@ class EntryScreen extends StatefulWidget {
 class _EntryScreenState extends State<EntryScreen> {
   DateTime? relevantDateTime;
 
-  DateFormat dayMonthYear = DateFormat("MMMM dd yyyy");
+  DateFormat dayMonthYear = DateFormat("MMMM d yyyy");
 
   late bool isActive;
   late final int epochDate;
@@ -38,6 +38,7 @@ class _EntryScreenState extends State<EntryScreen> {
 
   bool editingMode = false;
   bool loaded = false;
+  bool didAnythingChange = false;
 
   @override
   void initState() {
@@ -56,7 +57,6 @@ class _EntryScreenState extends State<EntryScreen> {
     }
     setState(() {
       if (relevantEntry == null) {
-        editingMode = true;
         isActive = false;
         notes = "";
         notesTextController.text = "";
@@ -96,8 +96,9 @@ class _EntryScreenState extends State<EntryScreen> {
                     style: TextButton.styleFrom(
                         foregroundColor:
                             editingMode ? Palette.white : Palette.black,
-                        backgroundColor:
-                            editingMode ? Palette.blue[500] : null),
+                        backgroundColor: editingMode
+                            ? Palette.blue[500]
+                            : Palette.orange[100]!),
                     child: Text(editingMode ? "Editing..." : "Edit",
                         style: !editingMode
                             ? const TextStyle(
@@ -118,18 +119,20 @@ class _EntryScreenState extends State<EntryScreen> {
                 ? Column(children: [
                     MoonbaseEntryCard(
                         textColor: Palette.black,
-                        backgroundColor: Palette.gray[100]!,
+                        backgroundColor: Palette.tan[100]!,
                         accentColor: Palette.blue[500]!,
                         editingMode: editingMode,
                         initialActive: isActive,
                         textEditingController: notesTextController,
                         checkboxOnChangedCallback: (value) {
                           setState(() {
+                            didAnythingChange = true;
                             isActive = value ?? false;
                           });
                         },
                         textInputOnChangedCallback: (value) {
                           setState(() {
+                            didAnythingChange = true;
                             notes = value;
                           });
                         }),
@@ -140,30 +143,32 @@ class _EntryScreenState extends State<EntryScreen> {
                       child: Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
-                            TextButton(
-                                style: TextButton.styleFrom(
-                                    backgroundColor: Palette.blue[500]),
-                                onPressed: () async {
-                                  DatabaseService instance =
-                                      DatabaseService.instance();
-                                  bool success =
-                                      await instance.addDailyEntry(DailyEntry(
-                                    epochDate: epochDate,
-                                    isActive: isActive,
-                                    notes: notes,
-                                  ));
-                                  if (success) {
-                                    setState(() {
-                                      loaded = false;
-                                      editingMode = false;
-                                    });
-                                  } else {
-                                    Logger.warning(
-                                        "Adding Daily Entry Failed: $epochDate, $isActive, $notes");
-                                  }
-                                },
-                                child: const Text("Save",
-                                    style: TextStyle(color: Palette.white))),
+                            if (didAnythingChange)
+                              TextButton(
+                                  style: TextButton.styleFrom(
+                                      backgroundColor: Palette.blue[500]),
+                                  onPressed: () async {
+                                    DatabaseService instance =
+                                        DatabaseService.instance();
+                                    bool success =
+                                        await instance.addDailyEntry(DailyEntry(
+                                      epochDate: epochDate,
+                                      isActive: isActive,
+                                      notes: notes,
+                                    ));
+                                    if (success) {
+                                      setState(() {
+                                        loaded = false;
+                                        editingMode = false;
+                                        didAnythingChange = false;
+                                      });
+                                    } else {
+                                      Logger.warning(
+                                          "Adding Daily Entry Failed: $epochDate, $isActive, $notes");
+                                    }
+                                  },
+                                  child: const Text("Save",
+                                      style: TextStyle(color: Palette.white))),
                             const SizedBox(width: 24),
                             IconButton(
                               style: IconButton.styleFrom(
@@ -207,8 +212,9 @@ class _EntryScreenState extends State<EntryScreen> {
                                                             DailyEntry
                                                                 .generateId(
                                                                     epochDate));
-                                                    if (!context.mounted)
+                                                    if (!context.mounted) {
                                                       return;
+                                                    }
                                                     context.pop();
                                                     Logger.info(
                                                         "Deleting entry E$epochDate: $success, proof: ${instance.getDailyEntry(epochDate)}");

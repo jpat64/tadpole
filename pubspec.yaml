@@ -26,3 +26,8 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  generate: true
+  fonts:
+    - family: Freeman
+      fonts:
+        - asset: assets/fonts/Freeman-Regular.ttf

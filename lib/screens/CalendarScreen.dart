@@ -57,11 +57,17 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   return SizedBox(
                     height: MediaQuery.of(context).size.height * 0.025,
                     width: MediaQuery.of(context).size.width * 0.125,
-                    child: Text(
-                      element,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 16),
+                    child: Container(
+                      decoration: const BoxDecoration(
+                          border: Border(
+                              bottom:
+                                  BorderSide(color: Palette.black, width: 2))),
+                      child: Text(
+                        element,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
                     ),
                   );
                 }).toList(),
@@ -81,8 +87,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     child: (subelement.first != "--")
                         ? MoonbaseDayButton(
                             textColor: Palette.black,
-                            backgroundColor: Palette.gray[100]!,
-                            hoverColor: Palette.gray[200]!,
+                            backgroundColor: Palette.tan[100]!,
+                            darkerBackgroundColor: Palette.tan[500]!,
                             data: Triple(
                                 subelement.first,
                                 subelement.last,
@@ -107,9 +113,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                monthYear.format(relevantDateTime!),
-              ),
+              Text(monthYear.format(relevantDateTime!),
+                  style: const TextStyle(fontFamily: "Freeman")),
             ],
           ),
         ),

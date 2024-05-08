@@ -5,13 +5,13 @@ import 'package:flutter/material.dart';
 class Palette {
   static ColorScheme lightScheme = ColorScheme(
     brightness: Brightness.light,
-    background: gray[50]!,
+    background: tan[50]!,
     onBackground: black,
     primary: tan[700]!,
     onPrimary: black,
     secondary: blue[300]!,
     onSecondary: black,
-    surface: gray[50]!,
+    surface: tan[50]!,
     onSurface: black,
     error: red[400]!,
     onError: black,

@@ -28,36 +28,40 @@ class MoonbaseEntryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      surfaceTintColor: backgroundColor,
+      color: backgroundColor,
       child: Container(
         padding: const EdgeInsets.all(30),
         child: Column(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.only(top: 8, bottom: 8),
               child: CheckboxListTile(
                 activeColor: accentColor,
                 checkColor: Palette.white,
                 value: initialActive,
                 enabled: editingMode,
                 onChanged: checkboxOnChangedCallback,
-                title: const Text("active?"),
+                title: Text("active?",
+                    style: TextStyle(fontSize: 18, color: textColor)),
               ),
             ),
-            editingMode
-                ? Container(
-                    padding: const EdgeInsets.all(8),
-                    child: TextField(
+            Container(
+              padding: const EdgeInsets.all(16),
+              child: editingMode
+                  ? TextField(
                       decoration: const InputDecoration(
                           helperText: "Enter any notes here."),
                       controller: textEditingController,
                       enabled: editingMode,
+                      cursorColor: accentColor,
+                      cursorErrorColor: Palette.red[500],
                       onChanged: textInputOnChangedCallback,
                       maxLines: 10,
                       minLines: 6,
-                    ),
-                  )
-                : Text(textEditingController.text),
+                    )
+                  : Text(textEditingController.text,
+                      style: TextStyle(fontSize: 18, color: textColor)),
+            ),
           ],
         ),
       ),
