@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:moonbase/components/LoadingWidget.dart';
 import 'package:moonbase/components/MoonbaseBottomBar.dart';
 import 'package:moonbase/components/MoonbaseDayButton.dart';
+import 'package:moonbase/models/DailyEntry.dart';
 import 'package:moonbase/services/DatabaseService.dart';
 import 'package:moonbase/utils/DateTimeUtils.dart';
 import 'package:moonbase/utils/Palette.dart';
@@ -37,12 +38,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   // WIDGET HELPER METHOD
-  Column getCalendar(BuildContext context, DateTime dateTime) {
+  ListView getCalendar(BuildContext context, DateTime dateTime) {
     DatabaseService instance = DatabaseService.instance();
     List<String> dayOfWeekNames = ["S", "M", "T", "W", "R", "F", "S"];
     List<List<Tuple<String, DateTime>>> boxNames =
         DateTimeUtils.arrangeMonth(dateTime);
-    return Column(
+    return ListView(
       children: <Widget>[
             Container(
               padding: const EdgeInsets.all(4),
@@ -87,13 +88,28 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     child: (subelement.first != "--")
                         ? MoonbaseDayButton(
                             textColor: Palette.black,
-                            backgroundColor: Palette.tan[100]!,
-                            darkerBackgroundColor: Palette.tan[500]!,
+                            activeColors:
+                                Tuple(Palette.tan[100]!, Palette.tan[500]!),
+                            inactiveColors:
+                                Tuple(Palette.gray[100]!, Palette.gray[500]!),
                             data: Triple(
-                                subelement.first,
-                                subelement.last,
-                                instance.getDailyEntryActivity(
-                                    DateTimeUtils.epochDays(subelement.last))))
+                              subelement.first,
+                              subelement.last,
+                              () {
+                                try {
+                                  DailyEntry entry = instance.getDailyEntry(
+                                      DateTimeUtils.epochDays(
+                                          subelement.last))!;
+                                  return Triple<bool, bool, bool>(
+                                      entry.current > 1,
+                                      entry.points > 1,
+                                      entry.pallor > 1);
+                                } catch (e) {
+                                  return null;
+                                }
+                              }(),
+                            ),
+                          )
                         : null,
                   );
                 }).toList(),

@@ -17,22 +17,28 @@ class DailyEntryAdapter extends TypeAdapter<DailyEntry> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return DailyEntry(
-      isActive: fields[0] as bool,
-      notes: fields[1] as String?,
-      epochDate: fields[2] as int,
+      notes: fields[0] as String?,
+      epochDate: fields[1] as int,
+      current: fields[2] as int,
+      points: fields[3] as int,
+      pallor: fields[4] as int,
     );
   }
 
   @override
   void write(BinaryWriter writer, DailyEntry obj) {
     writer
-      ..writeByte(3)
+      ..writeByte(5)
       ..writeByte(0)
-      ..write(obj.isActive)
-      ..writeByte(1)
       ..write(obj.notes)
+      ..writeByte(1)
+      ..write(obj.epochDate)
       ..writeByte(2)
-      ..write(obj.epochDate);
+      ..write(obj.current)
+      ..writeByte(3)
+      ..write(obj.points)
+      ..writeByte(4)
+      ..write(obj.pallor);
   }
 
   @override

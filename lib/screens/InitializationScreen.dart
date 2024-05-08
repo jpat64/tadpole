@@ -28,7 +28,7 @@ class _InitializationScreenState extends State<InitializationScreen> {
     WidgetsBinding.instance.addPostFrameCallback((timestamp) async {
       await setup();
       if (!context.mounted) return;
-      context.goNamed(CalendarScreen.name, pathParameters: {
+      context.pushNamed(CalendarScreen.name, pathParameters: {
         "epochDate": "${DateTimeUtils.epochDays(DateTime.now())}"
       });
     });

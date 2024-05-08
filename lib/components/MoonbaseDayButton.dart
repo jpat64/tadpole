@@ -5,30 +5,32 @@ import 'package:go_router/go_router.dart';
 import 'package:moonbase/utils/DateTimeUtils.dart';
 import 'package:moonbase/utils/Palette.dart';
 import 'package:moonbase/utils/data/Triple.dart';
+import 'package:moonbase/utils/data/Tuple.dart';
 
 class MoonbaseDayButton extends StatelessWidget {
   final Color textColor;
-  final Color backgroundColor;
-  final Color darkerBackgroundColor;
-  final Triple<String, DateTime, bool?> data;
+  final Tuple<Color, Color> activeColors;
+  final Tuple<Color, Color> inactiveColors;
+  final Triple<String, DateTime, Triple<bool, bool, bool>?> data;
 
   const MoonbaseDayButton(
       {super.key,
       required this.textColor,
-      required this.backgroundColor,
-      required this.darkerBackgroundColor,
+      required this.activeColors,
+      required this.inactiveColors,
       required this.data});
 
   @override
   Widget build(BuildContext context) {
     return TextButton(
       style: TextButton.styleFrom(
-        backgroundColor: backgroundColor,
+        backgroundColor:
+            data.third != null ? activeColors.first : inactiveColors.first,
         shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.only(topLeft: Radius.circular(15))),
       ),
       onPressed: () {
-        context.goNamed("/entry", pathParameters: <String, String>{
+        context.pushNamed("/entry", pathParameters: <String, String>{
           "epochDate": "${DateTimeUtils.epochDays(data.second)}"
         });
       },
@@ -39,7 +41,11 @@ class MoonbaseDayButton extends StatelessWidget {
           Container(
             decoration: BoxDecoration(
               border: Border(
-                bottom: BorderSide(color: darkerBackgroundColor, width: 2),
+                bottom: BorderSide(
+                    color: data.third != null
+                        ? activeColors.last
+                        : inactiveColors.last,
+                    width: 2),
               ),
             ),
             child: Text(
@@ -49,11 +55,23 @@ class MoonbaseDayButton extends StatelessWidget {
           ),
           const Spacer(),
           if (data.third != null)
-            Badge(
-              smallSize: 12,
-              backgroundColor:
-                  data.third! ? Palette.red[500] : Palette.blue[500],
-            ),
+            Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+              if (data.third!.first)
+                Badge(
+                  smallSize: 8,
+                  backgroundColor: Palette.red[500],
+                ),
+              if (data.third!.second)
+                Badge(
+                  smallSize: 8,
+                  backgroundColor: Palette.pink[500],
+                ),
+              if (data.third!.third)
+                Badge(
+                  smallSize: 8,
+                  backgroundColor: Palette.purple[500],
+                ),
+            ]),
         ],
       ),
     );

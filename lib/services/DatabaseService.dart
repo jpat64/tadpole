@@ -13,6 +13,14 @@ class DatabaseService {
   late final Box<DailyEntry> _dailyEntryBox;
 
   Future<void> openBoxes() async {
+    /*                          :::: DEBUG ONLY ::::
+     *
+     *   I messed with the models so this needs to get run- resets all the info. :(
+     * 
+     *   only uncomment the below line if you want to reset all the local info.
+     */
+    // await Hive.deleteBoxFromDisk(MOONBASE_DAILY_ENTRIES);
+
     _dailyEntryBox = await Hive.openBox(MOONBASE_DAILY_ENTRIES);
   }
 
@@ -34,10 +42,6 @@ class DatabaseService {
 
   bool existsEntryForDay(int epochDate) {
     return _dailyEntryBox.get(DailyEntry.generateId(epochDate)) != null;
-  }
-
-  bool? getDailyEntryActivity(int epochDate) {
-    return _dailyEntryBox.get(DailyEntry.generateId(epochDate))?.isActive;
   }
 
   DailyEntry? getDailyEntry(int epochDate) {

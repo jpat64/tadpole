@@ -6,15 +6,26 @@ part 'DailyEntry.g.dart';
 @HiveType(typeId: 0)
 class DailyEntry {
   @HiveField(0)
-  bool isActive;
-
-  @HiveField(1)
   String? notes;
 
-  @HiveField(2)
+  @HiveField(1)
   int epochDate;
 
-  DailyEntry({required this.isActive, this.notes, required this.epochDate});
+  @HiveField(2)
+  int current;
+
+  @HiveField(3)
+  int points;
+
+  @HiveField(4)
+  int pallor;
+
+  DailyEntry(
+      {this.notes,
+      required this.epochDate,
+      required this.current,
+      required this.points,
+      required this.pallor});
 
   String get id => "E$epochDate";
 

@@ -76,17 +76,17 @@ class Palette {
     900: Color(0xff210e01),
   });
 
-  static const MaterialColor blue = MaterialColor(0xff5e81e0, {
-    50: Color(0xffeff3fd),
-    100: Color(0xffc7d4f9),
-    200: Color(0xffa1b4e8),
-    300: Color(0xff7e9ae5),
-    400: Color(0xff5e81e0),
-    500: Color(0xff3f64c8),
-    600: Color(0xff132d75),
-    700: Color(0xff0c2364),
-    800: Color(0xff041237),
-    000: Color(0xff01040d),
+  static const MaterialColor yellow = MaterialColor(0xffc1b74b, {
+    50: Color(0xfff1f0e6),
+    100: Color(0xfff4f0bf),
+    200: Color(0xffdbd591),
+    300: Color(0xffd2c964),
+    400: Color(0xffc1b74b),
+    500: Color(0xffa99e71),
+    600: Color(0xff8B821a),
+    700: Color(0xff6a630f),
+    800: Color(0xff4a4505),
+    900: Color(0xff211e01),
   });
 
   static const MaterialColor green = MaterialColor(0xff56a43d, {
@@ -100,6 +100,45 @@ class Palette {
     700: Color(0xff20550f),
     800: Color(0xff103405),
     900: Color(0xff092101),
+  });
+
+  static const MaterialColor blue = MaterialColor(0xff5e81e0, {
+    50: Color(0xffeff3fd),
+    100: Color(0xffc7d4f9),
+    200: Color(0xffa1b4e8),
+    300: Color(0xff7e9ae5),
+    400: Color(0xff5e81e0),
+    500: Color(0xff3f64c8),
+    600: Color(0xff132d75),
+    700: Color(0xff0c2364),
+    800: Color(0xff041237),
+    000: Color(0xff01040d),
+  });
+
+  static const MaterialColor purple = MaterialColor(0xffa75ee0, {
+    50: Color(0xfff7effd),
+    100: Color(0xffe3c7f9),
+    200: Color(0xffc9a1e8),
+    300: Color(0xffb97ee5),
+    400: Color(0xffa75ee0),
+    500: Color(0xff8d3fc8),
+    600: Color(0xff4b1375),
+    700: Color(0xff3e0c64),
+    800: Color(0xff210437),
+    900: Color(0xff07010d),
+  });
+
+  static const MaterialColor pink = MaterialColor(0xffe05ed3, {
+    50: Color(0xfffdeffc),
+    100: Color(0xfff9c7f4),
+    200: Color(0xffe8a1e1),
+    300: Color(0xffe57edb),
+    400: Color(0xffe05ed3),
+    500: Color(0xffc83fba),
+    600: Color(0xff75136b),
+    700: Color(0xff640c5b),
+    800: Color(0xff370432),
+    900: Color(0xff0d010c),
   });
 
   static const MaterialColor gray = MaterialColor(0xff595b5e, {

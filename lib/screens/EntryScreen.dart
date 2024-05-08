@@ -31,10 +31,12 @@ class _EntryScreenState extends State<EntryScreen> {
 
   DateFormat dayMonthYear = DateFormat("MMMM d yyyy");
 
-  late bool isActive;
-  late final int epochDate;
   TextEditingController notesTextController = TextEditingController();
   late String notes;
+  late final int epochDate;
+  late int current;
+  late int points;
+  late int pallor;
 
   bool editingMode = false;
   bool loaded = false;
@@ -57,11 +59,16 @@ class _EntryScreenState extends State<EntryScreen> {
     }
     setState(() {
       if (relevantEntry == null) {
-        isActive = false;
+        didAnythingChange = true;
+        current = 0;
+        points = 0;
+        pallor = 0;
         notes = "";
         notesTextController.text = "";
       } else {
-        isActive = relevantEntry.isActive;
+        current = relevantEntry.current;
+        points = relevantEntry.points;
+        pallor = relevantEntry.pallor;
         notes = relevantEntry.notes ?? "";
         notesTextController.text = notes;
       }
@@ -84,6 +91,7 @@ class _EntryScreenState extends State<EntryScreen> {
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
         appBar: AppBar(
+          automaticallyImplyLeading: false,
           title: Container(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -116,18 +124,34 @@ class _EntryScreenState extends State<EntryScreen> {
         body: Container(
             padding: const EdgeInsets.all(16),
             child: loaded
-                ? Column(children: [
+                ? ListView(children: [
                     MoonbaseEntryCard(
                         textColor: Palette.black,
                         backgroundColor: Palette.tan[100]!,
                         accentColor: Palette.blue[500]!,
                         editingMode: editingMode,
-                        initialActive: isActive,
+                        initialCurrent: current,
+                        initialPoints: points,
+                        initialPallor: pallor,
                         textEditingController: notesTextController,
-                        checkboxOnChangedCallback: (value) {
+                        currentOnChangedCallback: (value) {
+                          print("current about to change to: $value");
                           setState(() {
                             didAnythingChange = true;
-                            isActive = value ?? false;
+                            current = value ?? 0;
+                          });
+                          print("current changed: $value");
+                        },
+                        pointsOnChangedCallback: (value) {
+                          setState(() {
+                            didAnythingChange = true;
+                            points = value ?? 0;
+                          });
+                        },
+                        pallorOnChangedCallback: (value) {
+                          setState(() {
+                            didAnythingChange = true;
+                            pallor = value ?? 0;
                           });
                         },
                         textInputOnChangedCallback: (value) {
@@ -136,7 +160,7 @@ class _EntryScreenState extends State<EntryScreen> {
                             notes = value;
                           });
                         }),
-                    const Spacer(),
+                    const SizedBox(height: 24),
                     // submitting the form
                     Container(
                       padding: const EdgeInsets.only(bottom: 16),
@@ -153,7 +177,9 @@ class _EntryScreenState extends State<EntryScreen> {
                                     bool success =
                                         await instance.addDailyEntry(DailyEntry(
                                       epochDate: epochDate,
-                                      isActive: isActive,
+                                      current: current,
+                                      points: points,
+                                      pallor: pallor,
                                       notes: notes,
                                     ));
                                     if (success) {
@@ -164,7 +190,7 @@ class _EntryScreenState extends State<EntryScreen> {
                                       });
                                     } else {
                                       Logger.warning(
-                                          "Adding Daily Entry Failed: $epochDate, $isActive, $notes");
+                                          "Adding Daily Entry Failed: $epochDate, [$current, $points, $pallor], $notes");
                                     }
                                   },
                                   child: const Text("Save",
