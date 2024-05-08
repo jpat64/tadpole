@@ -32,8 +32,12 @@ class DatabaseService {
     }
   }
 
-  bool isEntryActiveForDay(int epochDate) {
+  bool existsEntryForDay(int epochDate) {
     return _dailyEntryBox.get(DailyEntry.generateId(epochDate)) != null;
+  }
+
+  bool? getDailyEntryActivity(int epochDate) {
+    return _dailyEntryBox.get(DailyEntry.generateId(epochDate))?.isActive;
   }
 
   DailyEntry? getDailyEntry(int epochDate) {

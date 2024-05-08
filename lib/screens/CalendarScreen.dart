@@ -1,13 +1,14 @@
 // ignore_for_file: file_names
 
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:moonbase/components/LoadingWidget.dart';
 import 'package:moonbase/components/MoonbaseBottomBar.dart';
-import 'package:moonbase/screens/EntryScreen.dart';
+import 'package:moonbase/components/MoonbaseDayButton.dart';
 import 'package:moonbase/services/DatabaseService.dart';
 import 'package:moonbase/utils/DateTimeUtils.dart';
-import 'package:moonbase/utils/Tuple.dart';
+import 'package:moonbase/utils/Palette.dart';
+import 'package:moonbase/utils/data/Triple.dart';
+import 'package:moonbase/utils/data/Tuple.dart';
 
 import 'package:intl/intl.dart';
 
@@ -78,29 +79,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     height: MediaQuery.of(context).size.height * 0.1,
                     width: MediaQuery.of(context).size.width * 0.125,
                     child: (subelement.first != "--")
-                        ? TextButton(
-                            style: TextButton.styleFrom(
-                              shape: const RoundedRectangleBorder(),
-                              textStyle: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: (instance.isEntryActiveForDay(
-                                          DateTimeUtils.epochDays(
-                                              subelement.last)))
-                                      ? FontWeight.bold
-                                      : FontWeight.normal),
-                            ),
-                            onPressed: () {
-                              int epochDate = DateTimeUtils.epochDays(
-                                  DateUtils.addDaysToDate(
-                                      dateTime,
-                                      (int.parse(subelement.first) -
-                                          dateTime.day)));
-                              context.goNamed(EntryScreen.name,
-                                  pathParameters: {"epochDate": "$epochDate"});
-                              print("${subelement.first} pressed");
-                            },
-                            child: Text(subelement.first),
-                          )
+                        ? MoonbaseDayButton(
+                            textColor: Palette.black,
+                            backgroundColor: Palette.gray[100]!,
+                            hoverColor: Palette.gray[200]!,
+                            data: Triple(
+                                subelement.first,
+                                subelement.last,
+                                instance.getDailyEntryActivity(
+                                    DateTimeUtils.epochDays(subelement.last))))
                         : null,
                   );
                 }).toList(),

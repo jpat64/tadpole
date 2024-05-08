@@ -4,13 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moonbase/components/LoadingWidget.dart';
 import 'package:moonbase/components/MoonbaseBottomBar.dart';
+import 'package:moonbase/components/MoonbaseEntryCard.dart';
 import 'package:moonbase/models/DailyEntry.dart';
 import 'package:moonbase/services/DatabaseService.dart';
 import 'package:moonbase/services/Logger.dart';
 import 'package:moonbase/utils/DateTimeUtils.dart';
 
 import 'package:intl/intl.dart';
-import 'package:moonbase/utils/ThemeUtils.dart';
+import 'package:moonbase/utils/Palette.dart';
 
 class EntryScreen extends StatefulWidget {
   const EntryScreen({super.key, required this.epochDate});
@@ -48,7 +49,7 @@ class _EntryScreenState extends State<EntryScreen> {
 
   void loadDailyEntry() {
     DatabaseService instance = DatabaseService.instance();
-    bool isEntryActive = instance.isEntryActiveForDay(epochDate);
+    bool isEntryActive = instance.existsEntryForDay(epochDate);
     DailyEntry? relevantEntry;
     if (isEntryActive) {
       relevantEntry = instance.getDailyEntry(epochDate);
@@ -91,8 +92,17 @@ class _EntryScreenState extends State<EntryScreen> {
                 Text(
                   dayMonthYear.format(relevantDateTime!),
                 ),
-                IconButton(
-                    icon: const Icon(Icons.edit),
+                TextButton(
+                    style: TextButton.styleFrom(
+                        foregroundColor:
+                            editingMode ? Palette.white : Palette.black,
+                        backgroundColor:
+                            editingMode ? Palette.blue[500] : null),
+                    child: Text(editingMode ? "Editing..." : "Edit",
+                        style: !editingMode
+                            ? const TextStyle(
+                                decoration: TextDecoration.underline)
+                            : null),
                     onPressed: () {
                       setState(() {
                         editingMode = !editingMode;
@@ -106,44 +116,23 @@ class _EntryScreenState extends State<EntryScreen> {
             padding: const EdgeInsets.all(16),
             child: loaded
                 ? Column(children: [
-                    Card(
-                      child: Container(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(children: [
-                            // the form
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              child: CheckboxListTile(
-                                value: isActive,
-                                enabled: editingMode,
-                                onChanged: (value) {
-                                  setState(() {
-                                    isActive = value ?? false;
-                                  });
-                                },
-                                title: const Text("active?"),
-                              ),
-                            ),
-                            editingMode
-                                ? Container(
-                                    padding: const EdgeInsets.all(8),
-                                    child: TextField(
-                                      decoration: const InputDecoration(
-                                          helperText: "Enter any notes here."),
-                                      controller: notesTextController,
-                                      enabled: editingMode,
-                                      onChanged: (value) {
-                                        setState(() {
-                                          notes = value;
-                                        });
-                                      },
-                                      maxLines: 10,
-                                      minLines: 6,
-                                    ),
-                                  )
-                                : Text(notesTextController.text),
-                          ])),
-                    ),
+                    MoonbaseEntryCard(
+                        textColor: Palette.black,
+                        backgroundColor: Palette.gray[100]!,
+                        accentColor: Palette.blue[500]!,
+                        editingMode: editingMode,
+                        initialActive: isActive,
+                        textEditingController: notesTextController,
+                        checkboxOnChangedCallback: (value) {
+                          setState(() {
+                            isActive = value ?? false;
+                          });
+                        },
+                        textInputOnChangedCallback: (value) {
+                          setState(() {
+                            notes = value;
+                          });
+                        }),
                     const Spacer(),
                     // submitting the form
                     Container(
@@ -152,8 +141,8 @@ class _EntryScreenState extends State<EntryScreen> {
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             TextButton(
-                                style: ThemeUtils.successButtonStyle(
-                                    Theme.of(context).colorScheme),
+                                style: TextButton.styleFrom(
+                                    backgroundColor: Palette.blue[500]),
                                 onPressed: () async {
                                   DatabaseService instance =
                                       DatabaseService.instance();
@@ -166,49 +155,75 @@ class _EntryScreenState extends State<EntryScreen> {
                                   if (success) {
                                     setState(() {
                                       loaded = false;
+                                      editingMode = false;
                                     });
                                   } else {
                                     Logger.warning(
                                         "Adding Daily Entry Failed: $epochDate, $isActive, $notes");
                                   }
                                 },
-                                child: const Text("Save")),
+                                child: const Text("Save",
+                                    style: TextStyle(color: Palette.white))),
                             const SizedBox(width: 24),
                             IconButton(
-                              style: ThemeUtils.dangerButtonStyle(
-                                  Theme.of(context).colorScheme),
+                              style: IconButton.styleFrom(
+                                  backgroundColor: Palette.red[500],
+                                  foregroundColor: Palette.white),
                               icon: const Icon(Icons.delete),
                               onPressed: () {
                                 showDialog(
                                     context: context,
-                                    builder: (context) => AlertDialog(actions: [
-                                          TextButton(
-                                              onPressed: () => context.pop(),
-                                              child: const Text("Cancel")),
-                                          TextButton(
-                                              onPressed: () async {
-                                                DatabaseService instance =
-                                                    DatabaseService.instance();
-                                                bool success = await instance
-                                                    .removeDailyEntry(
-                                                        DailyEntry.generateId(
-                                                            epochDate));
-                                                if (!context.mounted) return;
-                                                context.pop();
-                                                Logger.info(
-                                                    "Deleting entry E$epochDate: $success, proof: ${instance.getDailyEntry(epochDate)}");
-                                                if (success) {
-                                                  setState(() {
-                                                    loaded = false;
-                                                  });
-                                                }
-                                              },
-                                              child: Text("Delete this Entry",
-                                                  style: TextStyle(
-                                                      backgroundColor:
-                                                          Colors.red[400],
-                                                      color: Colors.white))),
-                                        ]));
+                                    builder: (context) => AlertDialog(
+                                            title: const ListTile(
+                                              title: Text(
+                                                  "Are you sure you want to delete this Entry?"),
+                                              subtitle: Text(
+                                                  "We don't store your data anywhere else, so this is permanent unless you have made a backup."),
+                                              leading: Icon(Icons.warning),
+                                            ),
+                                            actions: [
+                                              TextButton(
+                                                  style: TextButton.styleFrom(
+                                                    backgroundColor:
+                                                        Palette.blue[500],
+                                                  ),
+                                                  onPressed: () =>
+                                                      context.pop(),
+                                                  child: const Text("Cancel",
+                                                      style: TextStyle(
+                                                          color:
+                                                              Palette.white))),
+                                              TextButton(
+                                                  style: TextButton.styleFrom(
+                                                    backgroundColor:
+                                                        Palette.red[500],
+                                                  ),
+                                                  onPressed: () async {
+                                                    DatabaseService instance =
+                                                        DatabaseService
+                                                            .instance();
+                                                    bool success = await instance
+                                                        .removeDailyEntry(
+                                                            DailyEntry
+                                                                .generateId(
+                                                                    epochDate));
+                                                    if (!context.mounted)
+                                                      return;
+                                                    context.pop();
+                                                    Logger.info(
+                                                        "Deleting entry E$epochDate: $success, proof: ${instance.getDailyEntry(epochDate)}");
+                                                    if (success) {
+                                                      setState(() {
+                                                        loaded = false;
+                                                      });
+                                                    }
+                                                  },
+                                                  child: const Text(
+                                                      "Delete this Entry",
+                                                      style: TextStyle(
+                                                          color:
+                                                              Palette.white))),
+                                            ]));
                               },
                             )
                           ]),
