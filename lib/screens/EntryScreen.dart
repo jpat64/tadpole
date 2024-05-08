@@ -135,12 +135,10 @@ class _EntryScreenState extends State<EntryScreen> {
                         initialPallor: pallor,
                         textEditingController: notesTextController,
                         currentOnChangedCallback: (value) {
-                          print("current about to change to: $value");
                           setState(() {
                             didAnythingChange = true;
                             current = value ?? 0;
                           });
-                          print("current changed: $value");
                         },
                         pointsOnChangedCallback: (value) {
                           setState(() {
