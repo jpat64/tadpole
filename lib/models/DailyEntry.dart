@@ -1,5 +1,6 @@
 // ignore_for_file: file_names
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:moonbase/models/DailyEntryTag.dart';
 
 part 'DailyEntry.g.dart';
 
@@ -20,12 +21,17 @@ class DailyEntry {
   @HiveField(4)
   int pallor;
 
-  DailyEntry(
-      {this.notes,
-      required this.epochDate,
-      required this.current,
-      required this.points,
-      required this.pallor});
+  @HiveField(5)
+  List<DailyEntryTag>? tags;
+
+  DailyEntry({
+    this.notes,
+    required this.epochDate,
+    required this.current,
+    required this.points,
+    required this.pallor,
+    this.tags,
+  });
 
   String get id => "E$epochDate";
 

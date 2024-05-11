@@ -6,6 +6,7 @@ import 'package:moonbase/components/LoadingWidget.dart';
 import 'package:moonbase/components/MoonbaseBottomBar.dart';
 import 'package:moonbase/components/MoonbaseEntryCard.dart';
 import 'package:moonbase/models/DailyEntry.dart';
+import 'package:moonbase/models/DailyEntryTag.dart';
 import 'package:moonbase/services/DatabaseService.dart';
 import 'package:moonbase/services/Logger.dart';
 import 'package:moonbase/utils/DateTimeUtils.dart';
@@ -37,6 +38,7 @@ class _EntryScreenState extends State<EntryScreen> {
   late int current;
   late int points;
   late int pallor;
+  late List<DailyEntryTag> tags;
 
   bool editingMode = false;
   bool loaded = false;
@@ -63,12 +65,14 @@ class _EntryScreenState extends State<EntryScreen> {
         current = 0;
         points = 0;
         pallor = 0;
+        tags = <DailyEntryTag>[];
         notes = "";
         notesTextController.text = "";
       } else {
         current = relevantEntry.current;
         points = relevantEntry.points;
         pallor = relevantEntry.pallor;
+        tags = relevantEntry.tags ?? <DailyEntryTag>[];
         notes = relevantEntry.notes ?? "";
         notesTextController.text = notes;
       }
@@ -128,11 +132,11 @@ class _EntryScreenState extends State<EntryScreen> {
                     MoonbaseEntryCard(
                         textColor: Palette.black,
                         backgroundColor: Palette.tan[100]!,
-                        accentColor: Palette.blue[500]!,
                         editingMode: editingMode,
                         initialCurrent: current,
                         initialPoints: points,
                         initialPallor: pallor,
+                        initialTags: tags,
                         textEditingController: notesTextController,
                         currentOnChangedCallback: (value) {
                           setState(() {
@@ -151,6 +155,37 @@ class _EntryScreenState extends State<EntryScreen> {
                             didAnythingChange = true;
                             pallor = value ?? 0;
                           });
+                        },
+                        tagDeletedCallback: (entryTag) {
+                          if (tags.contains(entryTag)) {
+                            tags.remove(entryTag);
+                          }
+                        },
+                        searchCallback: (searchString) {
+                          if (searchString?.isNotEmpty ?? false) {
+                            DatabaseService instance =
+                                DatabaseService.instance();
+                            return instance
+                                .searchTags(searchString!)
+                                .where(
+                                  (element) => (tags
+                                          .map<String>(
+                                              (subelement) => subelement.id)
+                                          .contains(element.id) ==
+                                      false),
+                                )
+                                .toList();
+                          }
+                          return [];
+                        },
+                        searchOptionSelectedCallback: (entryTag) {
+                          if (entryTag != null &&
+                              (tags
+                                      .map<String>((element) => element.id)
+                                      .contains(entryTag.id) ==
+                                  false)) {
+                            tags.add(entryTag);
+                          }
                         },
                         textInputOnChangedCallback: (value) {
                           setState(() {
@@ -178,6 +213,7 @@ class _EntryScreenState extends State<EntryScreen> {
                                       current: current,
                                       points: points,
                                       pallor: pallor,
+                                      tags: tags,
                                       notes: notes,
                                     ));
                                     if (success) {

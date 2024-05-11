@@ -21,6 +21,9 @@ class InitializationScreen extends StatefulWidget {
 class _InitializationScreenState extends State<InitializationScreen> {
   Future<void> setup() async {
     await DatabaseService.initialize();
+
+    DatabaseService instance = DatabaseService.instance();
+    await instance.addTags(["hungry", "thirsty", "sad"]);
   }
 
   @override

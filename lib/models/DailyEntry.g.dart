@@ -22,13 +22,14 @@ class DailyEntryAdapter extends TypeAdapter<DailyEntry> {
       current: fields[2] as int,
       points: fields[3] as int,
       pallor: fields[4] as int,
+      tags: (fields[5] as List?)?.cast<DailyEntryTag>(),
     );
   }
 
   @override
   void write(BinaryWriter writer, DailyEntry obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(6)
       ..writeByte(0)
       ..write(obj.notes)
       ..writeByte(1)
@@ -38,7 +39,9 @@ class DailyEntryAdapter extends TypeAdapter<DailyEntry> {
       ..writeByte(3)
       ..write(obj.points)
       ..writeByte(4)
-      ..write(obj.pallor);
+      ..write(obj.pallor)
+      ..writeByte(5)
+      ..write(obj.tags);
   }
 
   @override
