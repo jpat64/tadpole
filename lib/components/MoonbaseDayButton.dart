@@ -2,16 +2,18 @@
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:moonbase/components/MoonbaseBadgeSection.dart';
+import 'package:moonbase/models/DailyEntry.dart';
+import 'package:moonbase/services/DatabaseService.dart';
 import 'package:moonbase/utils/DateTimeUtils.dart';
 import 'package:moonbase/utils/Palette.dart';
-import 'package:moonbase/utils/data/Triple.dart';
-import 'package:moonbase/utils/data/Tuple.dart';
+import 'package:moonbase/utils/data/Pair.dart';
 
 class MoonbaseDayButton extends StatelessWidget {
   final Color textColor;
-  final Tuple<Color, Color> activeColors;
-  final Tuple<Color, Color> inactiveColors;
-  final Triple<String, DateTime, Triple<bool, bool, bool>?> data;
+  final Pair<Color, Color> activeColors;
+  final Pair<Color, Color> inactiveColors;
+  final Pair<String, DateTime?>? data;
 
   const MoonbaseDayButton(
       {super.key,
@@ -22,16 +24,39 @@ class MoonbaseDayButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    DatabaseService instance = DatabaseService.instance();
+    DailyEntry? entry;
+    if (data != null && data?.last != null) {
+      entry = instance.getDailyEntry(DateTimeUtils.epochDays(data!.last!));
+    }
+    List<Color> badgeColors = <Color>[];
+    if ((entry?.current ?? 0) > 1) {
+      badgeColors.add(Palette.red[500]!);
+    }
+    if ((entry?.points ?? 0) > 1) {
+      badgeColors.add(Palette.pink[500]!);
+    }
+    if ((entry?.pallor ?? 0) > 1) {
+      badgeColors.add(Palette.purple[500]!);
+    }
+    if ((entry?.tags?.length ?? 0) > 0) {
+      badgeColors.add(Palette.green[500]!);
+    }
+    if (entry?.notes?.isNotEmpty ?? false) {
+      badgeColors.add(Palette.blue[500]!);
+    }
+
     return TextButton(
       style: TextButton.styleFrom(
         backgroundColor:
-            data.third != null ? activeColors.first : inactiveColors.first,
+            entry != null ? activeColors.first : inactiveColors.first,
         shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.only(topLeft: Radius.circular(15))),
       ),
       onPressed: () {
         context.pushNamed("/entry", pathParameters: <String, String>{
-          "epochDate": "${DateTimeUtils.epochDays(data.second)}"
+          "epochDate":
+              "${entry?.epochDate ?? (data?.last != null ? DateTimeUtils.epochDays(data!.last!) : -1)}"
         });
       },
       child: Column(
@@ -42,36 +67,19 @@ class MoonbaseDayButton extends StatelessWidget {
             decoration: BoxDecoration(
               border: Border(
                 bottom: BorderSide(
-                    color: data.third != null
-                        ? activeColors.last
-                        : inactiveColors.last,
+                    color:
+                        entry != null ? activeColors.last : inactiveColors.last,
                     width: 2),
               ),
             ),
             child: Text(
-              data.first,
+              data?.first ?? "--",
               style: TextStyle(fontSize: 16, color: textColor),
             ),
           ),
           const Spacer(),
-          if (data.third != null)
-            Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-              if (data.third!.first)
-                Badge(
-                  smallSize: 8,
-                  backgroundColor: Palette.red[500],
-                ),
-              if (data.third!.second)
-                Badge(
-                  smallSize: 8,
-                  backgroundColor: Palette.pink[500],
-                ),
-              if (data.third!.third)
-                Badge(
-                  smallSize: 8,
-                  backgroundColor: Palette.purple[500],
-                ),
-            ]),
+          if (badgeColors.isNotEmpty)
+            MoonbaseBadgeSection(badgeColors: badgeColors),
         ],
       ),
     );

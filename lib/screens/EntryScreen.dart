@@ -158,7 +158,10 @@ class _EntryScreenState extends State<EntryScreen> {
                         },
                         tagDeletedCallback: (entryTag) {
                           if (tags.contains(entryTag)) {
-                            tags.remove(entryTag);
+                            setState(() {
+                              didAnythingChange = true;
+                              tags.remove(entryTag);
+                            });
                           }
                         },
                         searchCallback: (searchString) {
@@ -184,7 +187,10 @@ class _EntryScreenState extends State<EntryScreen> {
                                       .map<String>((element) => element.id)
                                       .contains(entryTag.id) ==
                                   false)) {
-                            tags.add(entryTag);
+                            setState(() {
+                              didAnythingChange = true;
+                              tags.add(entryTag);
+                            });
                           }
                         },
                         textInputOnChangedCallback: (value) {

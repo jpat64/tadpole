@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:moonbase/components/MoonbaseStatusButton.dart';
 import 'package:moonbase/models/DailyEntryTag.dart';
 import 'package:moonbase/utils/Palette.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
 
 class MoonbaseEntryCard extends StatelessWidget {
   final Color backgroundColor;
@@ -63,6 +64,7 @@ class MoonbaseEntryCard extends StatelessWidget {
                       child: MoonbaseStatusButtonBar(
                         activeColor: Palette.red[500]!,
                         inactiveColor: Palette.gray[200]!,
+                        dividerColor: Palette.tan[500]!,
                         initialValue: initialCurrent,
                         onPressedCallback: currentOnChangedCallback,
                         editingMode: editingMode,
@@ -84,6 +86,7 @@ class MoonbaseEntryCard extends StatelessWidget {
                     child: MoonbaseStatusButtonBar(
                       activeColor: Palette.pink[500]!,
                       inactiveColor: Palette.gray[200]!,
+                      dividerColor: Palette.tan[500]!,
                       initialValue: initialPoints,
                       onPressedCallback: pointsOnChangedCallback,
                       editingMode: editingMode,
@@ -104,6 +107,7 @@ class MoonbaseEntryCard extends StatelessWidget {
                     child: MoonbaseStatusButtonBar(
                       activeColor: Palette.purple[500]!,
                       inactiveColor: Palette.gray[200]!,
+                      dividerColor: Palette.tan[500]!,
                       initialValue: initialPallor,
                       onPressedCallback: pallorOnChangedCallback,
                       editingMode: editingMode,
@@ -112,41 +116,93 @@ class MoonbaseEntryCard extends StatelessWidget {
                 ]),
               ),
               Divider(color: Palette.tan[500]!),
+              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                Text("tags:", style: TextStyle(fontSize: 18, color: textColor)),
+                Badge(
+                  smallSize: 24,
+                  backgroundColor: editingMode || initialTags.isNotEmpty
+                      ? Palette.green[500]!
+                      : Palette.gray[200]!,
+                )
+              ]),
               if (editingMode)
-                Autocomplete(
-                  optionsBuilder: (value) => searchCallback(value.text),
-                  onSelected: searchOptionSelectedCallback,
-                ),
-              Wrap(
-                children: initialTags
-                    .map<FilterChip>(
-                      (element) => FilterChip(
-                        onSelected: (value) => {}, // do nothing
-                        label: Text(element.text),
-                        onDeleted: () {
-                          tagDeletedCallback(element);
-                        },
-                      ),
-                    )
-                    .toList(),
-              ),
-              Divider(color: Palette.tan[500]!),
-              Container(
-                padding: const EdgeInsets.all(16),
-                child: editingMode
-                    ? TextField(
+                TypeAheadField<DailyEntryTag>(
+                    builder: (conetxt, controller, focusNode) => TextField(
+                        controller: controller,
+                        focusNode: focusNode,
                         decoration: const InputDecoration(
-                            helperText: "Enter any notes here."),
-                        controller: textEditingController,
-                        enabled: editingMode,
-                        cursorErrorColor: Palette.red[500],
-                        onChanged: textInputOnChangedCallback,
-                        maxLines: 10,
-                        minLines: 6,
+                            hintText: "Enter a tag here...")),
+                    suggestionsCallback: (searchString) {
+                      List<DailyEntryTag>? searchResults =
+                          searchCallback(searchString);
+                      return searchResults;
+                    },
+                    onSelected: searchOptionSelectedCallback,
+                    itemBuilder: (context, value) =>
+                        ListTile(title: Text(value.text))),
+              if (initialTags.isNotEmpty)
+                Wrap(
+                  spacing: 4,
+                  children: initialTags
+                      .map<FilterChip>(
+                        (element) => FilterChip(
+                          backgroundColor: Palette.green[500]!,
+                          deleteIconColor: Palette.white,
+                          onSelected: (value) => {}, // do nothing
+                          shape: StadiumBorder(
+                              side: BorderSide(color: Palette.green[500]!)),
+                          label: Text(element.text,
+                              style: const TextStyle(
+                                  color: Palette.white, fontSize: 16)),
+                          onDeleted: editingMode
+                              ? () {
+                                  tagDeletedCallback(element);
+                                }
+                              : null,
+                        ),
                       )
-                    : Text(textEditingController.text,
-                        style: TextStyle(fontSize: 18, color: textColor)),
-              ),
+                      .toList(),
+                ),
+              if (initialTags.isEmpty)
+                ListTile(
+                    title: Text("No tags yet for this entry.",
+                        style: TextStyle(
+                            color: Palette.gray[400]!,
+                            fontStyle: FontStyle.italic))),
+              Divider(color: Palette.tan[500]!),
+              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                Text("notes:",
+                    style: TextStyle(fontSize: 18, color: textColor)),
+                Badge(
+                  smallSize: 24,
+                  backgroundColor:
+                      editingMode || textEditingController.text.isNotEmpty
+                          ? Palette.blue[500]!
+                          : Palette.gray[200]!,
+                )
+              ]),
+              editingMode
+                  ? TextField(
+                      decoration: const InputDecoration(
+                          helperText: "Enter any notes here."),
+                      controller: textEditingController,
+                      enabled: editingMode,
+                      cursorErrorColor: Palette.red[500],
+                      onChanged: textInputOnChangedCallback,
+                      maxLines: 10,
+                      minLines: 6,
+                    )
+                  : ListTile(
+                      title: textEditingController.text.isNotEmpty
+                          ? Text(textEditingController.text,
+                              style: TextStyle(fontSize: 18, color: textColor))
+                          : Text(
+                              "No notes yet for this entry.",
+                              style: TextStyle(
+                                  color: Palette.gray[400]!,
+                                  fontStyle: FontStyle.italic),
+                            ),
+                    ),
             ],
           ),
         ));

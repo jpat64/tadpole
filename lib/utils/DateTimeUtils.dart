@@ -1,7 +1,7 @@
 // ignore_for_file: file_names, constant_identifier_names
 
 import 'package:flutter/material.dart';
-import 'package:moonbase/utils/data/Tuple.dart';
+import 'package:moonbase/utils/data/Pair.dart';
 
 class DateTimeUtils {
   static const int MILLIS_PER_DAY = 86400 * 1000;
@@ -15,19 +15,19 @@ class DateTimeUtils {
   }
 
   // always returns 6 lists of 7 strings, with the strings being the day
-  static List<List<Tuple<String, DateTime>>> arrangeMonth(DateTime? dateTime) {
+  static List<List<Pair<String, DateTime>>> arrangeMonth(DateTime? dateTime) {
     dateTime ??= DateTime.now();
 
     int daysInMonth = DateUtils.getDaysInMonth(dateTime.year, dateTime.month);
     int dateOffset = DateUtils.firstDayOffset(
         dateTime.year, dateTime.month, const DefaultMaterialLocalizations());
     DateTime dayZeroOfMonth = DateUtils.addDaysToDate(dateTime, -dateTime.day);
-    List<Tuple<String, DateTime>> daysAsOneList =
-        List.filled(42, Tuple("--", dayZeroOfMonth));
+    List<Pair<String, DateTime>> daysAsOneList =
+        List.filled(42, Pair("--", dayZeroOfMonth));
     // the above took me like 5 hours to find and caused such a headache
     for (int i = 0; i < daysInMonth; i++) {
       daysAsOneList[(i + dateOffset)] =
-          Tuple("${i + 1}", DateUtils.addDaysToDate(dayZeroOfMonth, (i + 1)));
+          Pair("${i + 1}", DateUtils.addDaysToDate(dayZeroOfMonth, (i + 1)));
     }
     return [
       daysAsOneList.getRange(0, 7).toList(),

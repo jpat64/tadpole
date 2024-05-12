@@ -1,8 +1,8 @@
 // ignore_for_file: file_names
 
-class Tuple<K, T> {
+class Pair<K, T> {
   K first;
   T last;
 
-  Tuple(this.first, this.last);
+  Pair(this.first, this.last);
 }

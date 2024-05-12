@@ -33,6 +33,7 @@ class DatabaseService {
       await Hive.initFlutter();
 
       Hive.registerAdapter(DailyEntryAdapter());
+      Hive.registerAdapter(DailyEntryTagAdapter());
 
       DatabaseService instance = DatabaseService.instance();
 

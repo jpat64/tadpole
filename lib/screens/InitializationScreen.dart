@@ -1,7 +1,5 @@
 // ignore_for_file: file_names
 
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moonbase/screens/CalendarScreen.dart';
@@ -22,8 +20,9 @@ class _InitializationScreenState extends State<InitializationScreen> {
   Future<void> setup() async {
     await DatabaseService.initialize();
 
-    DatabaseService instance = DatabaseService.instance();
-    await instance.addTags(["hungry", "thirsty", "sad"]);
+    //DatabaseService instance = DatabaseService.instance();
+    //var success = await instance.addTags(["hungry", "thirsty", "sad"]);
+    //print('startup: $success ${instance.searchTags("thirs")}');
   }
 
   @override
@@ -38,7 +37,7 @@ class _InitializationScreenState extends State<InitializationScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text("Calendar")),
-      body: Image.file(File("pixil-frame-0 (2).png")),
+      body: Image.asset("assets/images/logo/light-logo.png"),
     );
   }
 }
