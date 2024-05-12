@@ -95,11 +95,38 @@ class DatabaseService {
     return startsWith + contains;
   }
 
+  List<DailyEntryTag> searchTagsExact(String searchTerm) {
+    List<DailyEntryTag> tags = _dailyEntryTagBox.values.toList();
+    return tags.where((element) => element.text == searchTerm).toList();
+  }
+
+  Future<int> trimTags() async {
+    int tagsTrimmed = 0;
+    List<DailyEntryTag> tags = _dailyEntryTagBox.values.toList();
+    for (DailyEntryTag tag in tags) {
+      List<DailyEntryTag> duplicateTags = _dailyEntryTagBox.values
+          .where((element) => element.text == tag.text && element.id != tag.id)
+          .toList();
+      for (DailyEntryTag duplicateTag in duplicateTags) {
+        Logger.info(
+            "duplicate tag found, deleting: $duplicateTag (duplicate of $tag)");
+        _dailyEntryTagBox.delete(duplicateTag.id);
+        tagsTrimmed += 1;
+      }
+    }
+    return tagsTrimmed;
+  }
+
   Future<bool> addTags(List<String> tagTexts) async {
     try {
       for (String text in tagTexts) {
-        String id = DailyEntryTag.generateId(text);
-        await _dailyEntryTagBox.put(id, DailyEntryTag(id: id, text: text));
+        if (searchTagsExact(text).isEmpty) {
+          String id = DailyEntryTag.generateId(text);
+          Logger.info("addTags() adding tag $text ($id)");
+          await _dailyEntryTagBox.put(id, DailyEntryTag(id: id, text: text));
+        } else {
+          Logger.info("addTags() tag $text already exists, skipping...");
+        }
       }
 
       return true;

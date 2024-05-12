@@ -18,4 +18,9 @@ class DailyEntryTag {
     int textSum = StringSum.sumString(text);
     return "ET$textSum${DateTime.now().millisecondsSinceEpoch.toRadixString(36)}";
   }
+
+  @override
+  String toString() {
+    return "DailyEntryTag: id:$id text:$text";
+  }
 }

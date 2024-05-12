@@ -38,4 +38,9 @@ class DailyEntry {
   static String generateId(int epochDate) {
     return "E$epochDate";
   }
+
+  @override
+  String toString() {
+    return "DailyEntry: epochDate:$epochDate current:$current points:$points pallor:$pallor tags:$tags notes:$notes";
+  }
 }

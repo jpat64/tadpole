@@ -182,15 +182,24 @@ class _EntryScreenState extends State<EntryScreen> {
                           return [];
                         },
                         searchOptionSelectedCallback: (entryTag) {
-                          if (entryTag != null &&
-                              (tags
-                                      .map<String>((element) => element.id)
-                                      .contains(entryTag.id) ==
-                                  false)) {
-                            setState(() {
-                              didAnythingChange = true;
-                              tags.add(entryTag);
-                            });
+                          if (entryTag != null) {
+                            String filteredTagText = entryTag.text;
+                            if (entryTag.text.startsWith("create new tag \"") &&
+                                entryTag.text.endsWith("\"")) {
+                              filteredTagText = entryTag.text.substring(
+                                  "create new tag \"".length,
+                                  entryTag.text.length - 1);
+                            }
+                            if (tags
+                                    .map<String>((element) => element.text)
+                                    .contains(filteredTagText) ==
+                                false) {
+                              setState(() {
+                                didAnythingChange = true;
+                                tags.add(DailyEntryTag(
+                                    id: entryTag.id, text: filteredTagText));
+                              });
+                            }
                           }
                         },
                         textInputOnChangedCallback: (value) {
@@ -213,7 +222,28 @@ class _EntryScreenState extends State<EntryScreen> {
                                   onPressed: () async {
                                     DatabaseService instance =
                                         DatabaseService.instance();
-                                    bool success =
+
+                                    bool success = false;
+
+                                    // save any new tags
+                                    List<String>? tagsTextsList;
+                                    for (DailyEntryTag tag in tags) {
+                                      if (tag.id.startsWith("newTag")) {
+                                        tagsTextsList ??= [];
+                                        tagsTextsList.add(tag.text);
+                                      }
+                                    }
+                                    if (tagsTextsList?.isNotEmpty ?? false) {
+                                      success = await instance
+                                          .addTags(tagsTextsList!);
+                                      if (!success) {
+                                        Logger.warning(
+                                            "Adding Daily Entry Tags Failed: $tagsTextsList");
+                                      }
+                                    }
+
+                                    // save current entry
+                                    success =
                                         await instance.addDailyEntry(DailyEntry(
                                       epochDate: epochDate,
                                       current: current,

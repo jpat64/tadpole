@@ -20,9 +20,8 @@ class _InitializationScreenState extends State<InitializationScreen> {
   Future<void> setup() async {
     await DatabaseService.initialize();
 
-    //DatabaseService instance = DatabaseService.instance();
-    //var success = await instance.addTags(["hungry", "thirsty", "sad"]);
-    //print('startup: $success ${instance.searchTags("thirs")}');
+    // DatabaseService instance = DatabaseService.instance();
+    // var success = await instance.trimTags();
   }
 
   @override

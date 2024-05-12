@@ -136,7 +136,7 @@ class MoonbaseEntryCard extends StatelessWidget {
                       List<DailyEntryTag>? searchResults =
                           searchCallback(searchString);
                       searchResults.add(DailyEntryTag(
-                          id: "unused",
+                          id: "newTag",
                           text: "create new tag \"$searchString\""));
                       return searchResults;
                     },
