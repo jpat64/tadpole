@@ -135,6 +135,9 @@ class MoonbaseEntryCard extends StatelessWidget {
                     suggestionsCallback: (searchString) {
                       List<DailyEntryTag>? searchResults =
                           searchCallback(searchString);
+                      searchResults.add(DailyEntryTag(
+                          id: "unused",
+                          text: "create new tag \"$searchString\""));
                       return searchResults;
                     },
                     onSelected: searchOptionSelectedCallback,

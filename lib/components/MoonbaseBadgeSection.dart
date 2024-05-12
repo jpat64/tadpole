@@ -6,6 +6,8 @@ class MoonbaseBadgeSection extends StatelessWidget {
 
   const MoonbaseBadgeSection({super.key, this.badgeColors});
 
+  static const List<double> sizes = [0, 8, 7, 6];
+
   List<Row> getBadgeRows(List<Color> badgeColors, List<Row>? toReturn) {
     toReturn ??= <Row>[];
     if (badgeColors.length <= 3) {
@@ -15,7 +17,7 @@ class MoonbaseBadgeSection extends StatelessWidget {
               .map<Container>((element) => Container(
                   padding: const EdgeInsets.all(1),
                   child: Badge(
-                    smallSize: 7,
+                    smallSize: sizes[badgeColors.length],
                     backgroundColor: element,
                   )))
               .toList()));
