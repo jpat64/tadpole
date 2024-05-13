@@ -8,7 +8,8 @@ class MoonbaseBadgeSection extends StatelessWidget {
 
   static const List<double> sizes = [0, 8, 7, 6];
 
-  List<Row> getBadgeRows(List<Color> badgeColors, List<Row>? toReturn) {
+  List<Row> getBadgeRows(
+      List<Color> badgeColors, List<Row>? toReturn, double size) {
     toReturn ??= <Row>[];
     if (badgeColors.length <= 3) {
       toReturn.add(Row(
@@ -17,24 +18,31 @@ class MoonbaseBadgeSection extends StatelessWidget {
               .map<Container>((element) => Container(
                   padding: const EdgeInsets.all(1),
                   child: Badge(
-                    smallSize: sizes[badgeColors.length],
+                    smallSize: size,
                     backgroundColor: element,
                   )))
               .toList()));
       return toReturn;
     } else if (badgeColors.length == 4) {
-      toReturn = getBadgeRows(badgeColors.sublist(0, 2), toReturn);
-      toReturn = getBadgeRows(badgeColors.sublist(2, 4), toReturn);
+      toReturn = getBadgeRows(badgeColors.sublist(0, 2), toReturn, size);
+      toReturn = getBadgeRows(badgeColors.sublist(2, 4), toReturn, size);
       return toReturn;
     } else {
-      toReturn = getBadgeRows(badgeColors.sublist(0, 3), toReturn);
-      toReturn = getBadgeRows(badgeColors.sublist(3), toReturn);
+      toReturn = getBadgeRows(badgeColors.sublist(0, 3), toReturn, size);
+      toReturn = getBadgeRows(badgeColors.sublist(3), toReturn, size);
       return toReturn;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(children: getBadgeRows(badgeColors ?? [], null));
+    double size = sizes[3];
+    if ((badgeColors?.length ?? 0) < 4) {
+      size = sizes[badgeColors!.length];
+    }
+    if ((badgeColors?.length ?? 0) == 4) {
+      size = sizes[2];
+    }
+    return Column(children: getBadgeRows(badgeColors ?? [], null, size));
   }
 }

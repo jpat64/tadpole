@@ -24,6 +24,9 @@ class DailyEntry {
   @HiveField(5)
   List<DailyEntryTag>? tags;
 
+  @HiveField(6)
+  bool? secured;
+
   DailyEntry({
     this.notes,
     required this.epochDate,
@@ -31,6 +34,7 @@ class DailyEntry {
     required this.points,
     required this.pallor,
     this.tags,
+    this.secured,
   });
 
   String get id => "E$epochDate";
@@ -41,6 +45,6 @@ class DailyEntry {
 
   @override
   String toString() {
-    return "DailyEntry: epochDate:$epochDate current:$current points:$points pallor:$pallor tags:$tags notes:$notes";
+    return "DailyEntry: epochDate:$epochDate current:$current points:$points pallor:$pallor tags:$tags notes:$notes secured:$secured";
   }
 }

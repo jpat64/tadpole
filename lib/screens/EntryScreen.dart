@@ -35,6 +35,7 @@ class _EntryScreenState extends State<EntryScreen> {
   TextEditingController notesTextController = TextEditingController();
   late String notes;
   late final int epochDate;
+  late bool secured;
   late int current;
   late int points;
   late int pallor;
@@ -62,6 +63,7 @@ class _EntryScreenState extends State<EntryScreen> {
     setState(() {
       if (relevantEntry == null) {
         didAnythingChange = true;
+        secured = false;
         current = 0;
         points = 0;
         pallor = 0;
@@ -69,6 +71,7 @@ class _EntryScreenState extends State<EntryScreen> {
         notes = "";
         notesTextController.text = "";
       } else {
+        secured = relevantEntry.secured ?? false;
         current = relevantEntry.current;
         points = relevantEntry.points;
         pallor = relevantEntry.pallor;
@@ -133,11 +136,18 @@ class _EntryScreenState extends State<EntryScreen> {
                         textColor: Palette.black,
                         backgroundColor: Palette.tan[100]!,
                         editingMode: editingMode,
+                        initialSecured: secured,
                         initialCurrent: current,
                         initialPoints: points,
                         initialPallor: pallor,
                         initialTags: tags,
                         textEditingController: notesTextController,
+                        securedOnChangedCallback: (value) {
+                          setState(() {
+                            didAnythingChange = true;
+                            secured = value ?? false;
+                          });
+                        },
                         currentOnChangedCallback: (value) {
                           setState(() {
                             didAnythingChange = true;
@@ -246,6 +256,7 @@ class _EntryScreenState extends State<EntryScreen> {
                                     success =
                                         await instance.addDailyEntry(DailyEntry(
                                       epochDate: epochDate,
+                                      secured: secured,
                                       current: current,
                                       points: points,
                                       pallor: pallor,

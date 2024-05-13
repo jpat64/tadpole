@@ -30,6 +30,9 @@ class MoonbaseDayButton extends StatelessWidget {
       entry = instance.getDailyEntry(DateTimeUtils.epochDays(data!.last!));
     }
     List<Color> badgeColors = <Color>[];
+    if (entry?.secured ?? false) {
+      badgeColors.add(Palette.orange[500]!);
+    }
     if ((entry?.current ?? 0) > 1) {
       badgeColors.add(Palette.red[500]!);
     }

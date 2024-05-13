@@ -10,11 +10,13 @@ class MoonbaseEntryCard extends StatelessWidget {
   final Color backgroundColor;
   final Color textColor;
   final bool editingMode;
+  final bool initialSecured;
   final int initialCurrent;
   final int initialPoints;
   final int initialPallor;
   final List<DailyEntryTag> initialTags;
   final TextEditingController textEditingController;
+  final void Function(bool?) securedOnChangedCallback;
   final void Function(int?) currentOnChangedCallback;
   final void Function(int?) pointsOnChangedCallback;
   final void Function(int?) pallorOnChangedCallback;
@@ -28,11 +30,13 @@ class MoonbaseEntryCard extends StatelessWidget {
     required this.textColor,
     required this.backgroundColor,
     required this.editingMode,
+    required this.initialSecured,
     required this.initialCurrent,
     required this.initialPoints,
     required this.initialPallor,
     required this.initialTags,
     required this.textEditingController,
+    required this.securedOnChangedCallback,
     required this.currentOnChangedCallback,
     required this.pointsOnChangedCallback,
     required this.pallorOnChangedCallback,
@@ -50,6 +54,28 @@ class MoonbaseEntryCard extends StatelessWidget {
           padding: const EdgeInsets.all(30),
           child: Column(
             children: [
+              Container(
+                padding: const EdgeInsets.only(top: 8, bottom: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("medication taken:",
+                        style: TextStyle(fontSize: 18, color: textColor)),
+                    MoonbaseStatusButton(
+                      activeColor: Palette.orange[500]!,
+                      currentLevel: initialSecured ? 4 : 0,
+                      targetLevel: 4,
+                      inactiveColor: Palette.gray[200]!,
+                      onPressedCallback: () {
+                        if (editingMode) {
+                          securedOnChangedCallback(!initialSecured);
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              Divider(color: Palette.tan[500]!),
               Container(
                 padding: const EdgeInsets.only(top: 8, bottom: 8),
                 child: Row(
@@ -127,7 +153,7 @@ class MoonbaseEntryCard extends StatelessWidget {
               ]),
               if (editingMode)
                 TypeAheadField<DailyEntryTag>(
-                    builder: (conetxt, controller, focusNode) => TextField(
+                    builder: (context, controller, focusNode) => TextField(
                         controller: controller,
                         focusNode: focusNode,
                         decoration: const InputDecoration(
