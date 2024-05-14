@@ -36,8 +36,11 @@ class _InitializationScreenState extends State<InitializationScreen> {
     });
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Calendar")),
-      body: Image.asset("assets/images/logo/light-logo.png"),
-    );
+        appBar: AppBar(title: const Text("Calendar")),
+        body: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Image.asset("assets/images/logo/light-logo.png"),
+          ])
+        ]));
   }
 }

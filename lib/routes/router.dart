@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 import 'package:moonbase/screens/CalendarScreen.dart';
 import 'package:moonbase/screens/EntryScreen.dart';
 import 'package:moonbase/screens/InitializationScreen.dart';
+import 'package:moonbase/screens/SettingsScreen.dart';
 
 final GoRouter router = GoRouter(
   routes: <RouteBase>[
@@ -20,6 +21,11 @@ final GoRouter router = GoRouter(
       name: EntryScreen.name,
       builder: (context, state) =>
           EntryScreen(epochDate: int.parse(state.pathParameters['epochDate']!)),
-    )
+    ),
+    GoRoute(
+      path: SettingsScreen.name,
+      name: SettingsScreen.name,
+      builder: (context, state) => const SettingsScreen(),
+    ),
   ],
 );

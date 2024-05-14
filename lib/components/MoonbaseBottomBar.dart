@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moonbase/screens/CalendarScreen.dart';
 import 'package:moonbase/screens/EntryScreen.dart';
+import 'package:moonbase/screens/SettingsScreen.dart';
 
 class MoonbaseBottomBar extends StatelessWidget {
   final int selectedIndex;
@@ -18,6 +19,10 @@ class MoonbaseBottomBar extends StatelessWidget {
     EntryScreen.name: NavigationDestination(
       icon: Icon(Icons.calendar_today),
       label: "Today",
+    ),
+    SettingsScreen.name: NavigationDestination(
+      icon: Icon(Icons.settings),
+      label: "Settings",
     ),
   };
 
