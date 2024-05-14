@@ -24,7 +24,8 @@ class EntryScreen extends StatefulWidget {
 
   static const String name = "/entry";
   static const int navIndex = 1;
-  static int defaultEpochDate = DateTimeUtils.epochDays(DateTime.now());
+  static int defaultEpochDate =
+      DateTimeUtils.epochDays(DateUtils.addDaysToDate(DateTime.now(), 0));
 }
 
 class _EntryScreenState extends State<EntryScreen> {
@@ -102,11 +103,25 @@ class _EntryScreenState extends State<EntryScreen> {
           title: Container(
             padding: const EdgeInsets.all(16),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
+                IconButton(
+                    icon: const Icon(Icons.arrow_back_ios_rounded,
+                        color: Palette.black),
+                    onPressed: () {
+                      if (relevantDateTime != null) {
+                        DateTime lastDay =
+                            DateUtils.addDaysToDate(relevantDateTime!, -1);
+
+                        context.pushNamed(EntryScreen.name, pathParameters: {
+                          "epochDate": "${DateTimeUtils.epochDays(lastDay)}"
+                        });
+                      }
+                    }),
                 Text(
                   dayMonthYear.format(relevantDateTime!),
                 ),
+                const Spacer(),
                 TextButton(
                     style: TextButton.styleFrom(
                         foregroundColor:
@@ -123,7 +138,19 @@ class _EntryScreenState extends State<EntryScreen> {
                       setState(() {
                         editingMode = !editingMode;
                       });
-                    })
+                    }),
+                IconButton(
+                    icon: const Icon(Icons.arrow_forward_ios_rounded,
+                        color: Palette.black),
+                    onPressed: () {
+                      if (relevantDateTime != null) {
+                        DateTime nextDay =
+                            DateUtils.addDaysToDate(relevantDateTime!, 1);
+                        context.pushNamed(EntryScreen.name, pathParameters: {
+                          "epochDate": "${DateTimeUtils.epochDays(nextDay)}"
+                        });
+                      }
+                    }),
               ],
             ),
           ),

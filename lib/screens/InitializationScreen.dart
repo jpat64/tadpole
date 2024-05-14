@@ -30,7 +30,8 @@ class _InitializationScreenState extends State<InitializationScreen> {
       await setup();
       if (!context.mounted) return;
       context.pushNamed(CalendarScreen.name, pathParameters: {
-        "epochDate": "${DateTimeUtils.epochDays(DateTime.now())}"
+        "epochDate":
+            "${DateTimeUtils.epochDays(DateUtils.addDaysToDate(DateTime.now(), 0))}"
       });
     });
 

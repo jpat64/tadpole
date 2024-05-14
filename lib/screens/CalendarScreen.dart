@@ -1,6 +1,7 @@
 // ignore_for_file: file_names
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:moonbase/components/LoadingWidget.dart';
 import 'package:moonbase/components/MoonbaseBottomBar.dart';
 import 'package:moonbase/components/MoonbaseDayButton.dart';
@@ -20,7 +21,8 @@ class CalendarScreen extends StatefulWidget {
 
   static const String name = "/calendar";
   static const int navIndex = 0;
-  static int defaultEpochDate = DateTimeUtils.epochDays(DateTime.now());
+  static int defaultEpochDate =
+      DateTimeUtils.epochDays(DateUtils.addDaysToDate(DateTime.now(), 0));
 }
 
 class _CalendarScreenState extends State<CalendarScreen> {
@@ -107,10 +109,38 @@ class _CalendarScreenState extends State<CalendarScreen> {
         title: Container(
           padding: const EdgeInsets.all(16),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
+              IconButton(
+                  icon: const Icon(Icons.arrow_back_ios_rounded,
+                      color: Palette.black),
+                  onPressed: () {
+                    if (relevantDateTime != null) {
+                      DateTime lastMonth =
+                          DateUtils.addMonthsToMonthDate(relevantDateTime!, -1);
+                      lastMonth = DateUtils.addDaysToDate(lastMonth, 1);
+
+                      context.pushNamed(CalendarScreen.name, pathParameters: {
+                        "epochDate": "${DateTimeUtils.epochDays(lastMonth)}"
+                      });
+                    }
+                  }),
               Text(monthYear.format(relevantDateTime!),
                   style: const TextStyle(fontFamily: "Freeman")),
+              const Spacer(),
+              IconButton(
+                  icon: const Icon(Icons.arrow_forward_ios_rounded,
+                      color: Palette.black),
+                  onPressed: () {
+                    if (relevantDateTime != null) {
+                      DateTime nextMonth =
+                          DateUtils.addMonthsToMonthDate(relevantDateTime!, 1);
+                      nextMonth = DateUtils.addDaysToDate(nextMonth, 1);
+                      context.pushNamed(CalendarScreen.name, pathParameters: {
+                        "epochDate": "${DateTimeUtils.epochDays(nextMonth)}"
+                      });
+                    }
+                  })
             ],
           ),
         ),

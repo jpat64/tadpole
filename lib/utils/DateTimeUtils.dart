@@ -16,7 +16,8 @@ class DateTimeUtils {
 
   // always returns 6 lists of 7 strings, with the strings being the day
   static List<List<Pair<String, DateTime>>> arrangeMonth(DateTime? dateTime) {
-    dateTime ??= DateTime.now();
+    dateTime ??=
+        DateUtils.addDaysToDate(DateTime.now(), 0); // today at midnight
 
     int daysInMonth = DateUtils.getDaysInMonth(dateTime.year, dateTime.month);
     int dateOffset = DateUtils.firstDayOffset(
