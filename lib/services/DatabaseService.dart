@@ -47,6 +47,12 @@ class DatabaseService {
     }
   }
 
+  Future<bool> deleteDataFromBoxes() async {
+    await _dailyEntryBox.clear();
+    await _dailyEntryTagBox.clear();
+    return true;
+  }
+
   ///////// IMPORT/EXPORT ENTRIES AND TAGS
 
   List<String> getLinesForExport() {

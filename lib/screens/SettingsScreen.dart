@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:moonbase/components/MoonbaseBottomBar.dart';
 import 'package:moonbase/components/MoonbaseDateTimeSelector.dart';
 import 'package:moonbase/services/DataIOService.dart';
+import 'package:moonbase/services/DatabaseService.dart';
 import 'package:moonbase/services/Logger.dart';
 import 'package:moonbase/utils/DateTimeUtils.dart';
 import 'package:moonbase/utils/Palette.dart';
@@ -81,6 +82,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: Text("Export Data:"),
               ),
               ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: Palette.blue[500],
+                    foregroundColor: Palette.white),
                 onPressed: () {
                   showDialog(
                     context: context,
@@ -109,12 +113,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                         actions: [
                           TextButton(
+                            style: TextButton.styleFrom(
+                                backgroundColor: Palette.tan[200],
+                                foregroundColor: Palette.black),
                             onPressed: () {
                               context.pop();
                             },
                             child: const Text("Cancel"),
                           ),
                           TextButton(
+                            style: TextButton.styleFrom(
+                                backgroundColor: Palette.blue[500],
+                                foregroundColor: Palette.white),
                             onPressed: () async {
                               if (_emailFormKey.currentState?.validate() ??
                                   false) {
@@ -152,69 +162,129 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: Text("Import Data:"),
               ),
               ElevatedButton(
-                  onPressed: () async {
-                    showDialog(
-                      context: context,
-                      builder: (context) => Form(
-                        key: _importFormKey,
-                        child: AlertDialog(
-                          content: ListTile(
-                            leading: const Icon(Icons.mail),
-                            title: const Text(
-                                "Which File? Make sure it's saved to your device."),
-                            subtitle: TextFormField(
-                              validator: (value) {
-                                if (value == null) {
-                                  return "Please enter a valid file path.";
-                                }
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: Palette.green[500],
+                    foregroundColor: Palette.white),
+                onPressed: () async {
+                  showDialog(
+                    context: context,
+                    builder: (context) => Form(
+                      key: _importFormKey,
+                      child: AlertDialog(
+                        content: ListTile(
+                          leading: const Icon(Icons.import_export),
+                          title: const Text(
+                              "Which File? Make sure it's saved to your device."),
+                          subtitle: TextFormField(
+                            validator: (value) {
+                              if (value == null) {
+                                return "Please enter a valid file path.";
+                              }
 
-                                RegExp importRegex =
-                                    RegExp(r'(data-).*(-).*(\.csv)');
-                                if (false == importRegex.hasMatch(value)) {
-                                  return "Please enter a valid file path (data-12345-67.csv)";
-                                }
+                              RegExp importRegex =
+                                  RegExp(r'(data-).*(-).*(\.csv)');
+                              if (false == importRegex.hasMatch(value)) {
+                                return "Please enter a valid file path (data-12345-67.csv)";
+                              }
 
-                                return null;
-                              },
-                              controller: importTextController,
-                            ),
+                              return null;
+                            },
+                            controller: importTextController,
                           ),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                context.pop();
-                              },
-                              child: const Text("Cancel"),
-                            ),
-                            TextButton(
-                              onPressed: () async {
-                                if (_importFormKey.currentState?.validate() ??
-                                    false) {
-                                  String path = await DataIOService.getFilePath(
-                                      importTextController.text);
-                                  String content =
-                                      await DataIOService.readFile(path);
-                                  Logger.info("content: $content");
-
-                                  bool success =
-                                      await DataIOService.importContent(
-                                          content);
-                                  if (success && context.mounted) {
-                                    context.pop();
-                                  } else {
-                                    Logger.warning(
-                                        "import data not successful");
-                                  }
-                                }
-                              },
-                              child: const Text("Import"),
-                            )
-                          ],
                         ),
+                        actions: [
+                          TextButton(
+                            style: TextButton.styleFrom(
+                                backgroundColor: Palette.tan[200],
+                                foregroundColor: Palette.black),
+                            onPressed: () {
+                              context.pop();
+                            },
+                            child: const Text("Cancel"),
+                          ),
+                          TextButton(
+                            style: TextButton.styleFrom(
+                                backgroundColor: Palette.green[500],
+                                foregroundColor: Palette.white),
+                            onPressed: () async {
+                              if (_importFormKey.currentState?.validate() ??
+                                  false) {
+                                String path = await DataIOService.getFilePath(
+                                    importTextController.text);
+                                String content =
+                                    await DataIOService.readFile(path);
+                                Logger.info("content: $content");
+
+                                bool success =
+                                    await DataIOService.importContent(content);
+                                if (success && context.mounted) {
+                                  context.pop();
+                                } else {
+                                  Logger.warning("import data not successful");
+                                }
+                              }
+                            },
+                            child: const Text("Import"),
+                          )
+                        ],
                       ),
-                    );
-                  },
-                  child: const Text("Import Data")),
+                    ),
+                  );
+                },
+                child: const Text("Import Data"),
+              ),
+              Divider(color: Palette.tan[500]!),
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Text("Delete Local Data:"),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Palette.red[500],
+                  foregroundColor: Palette.white,
+                ),
+                onPressed: () async {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      content: const ListTile(
+                        leading: Icon(Icons.warning),
+                        title: Text(
+                            "Are you sure you want to delete your local data?"),
+                        subtitle: Text(
+                            "We DON'T store your data anywhere else, so if it's lost, then it's gone forever.\n"
+                            "We recommend you use the Export Data feature to save the data somewhere before deleting it."),
+                      ),
+                      actions: [
+                        TextButton(
+                          style: TextButton.styleFrom(
+                              backgroundColor: Palette.tan[200],
+                              foregroundColor: Palette.black),
+                          onPressed: () {
+                            context.pop();
+                          },
+                          child: const Text("Cancel"),
+                        ),
+                        TextButton(
+                          style: TextButton.styleFrom(
+                              backgroundColor: Palette.red[500],
+                              foregroundColor: Palette.white),
+                          onPressed: () async {
+                            DatabaseService instance =
+                                DatabaseService.instance();
+                            bool success = await instance.deleteDataFromBoxes();
+                            if (false == success) {
+                              Logger.info("Deleted data from Boxes");
+                            }
+                          },
+                          child: const Text("Delete"),
+                        )
+                      ],
+                    ),
+                  );
+                },
+                child: const Text("Delete Local Data"),
+              ),
             ],
           ),
         ),
