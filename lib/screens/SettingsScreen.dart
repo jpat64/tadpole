@@ -168,9 +168,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   return "Please enter a valid file path.";
                                 }
 
-                                RegExp emailRegex =
+                                RegExp importRegex =
                                     RegExp(r'(data-).*(-).*(\.csv)');
-                                if (false == emailRegex.hasMatch(value)) {
+                                if (false == importRegex.hasMatch(value)) {
                                   return "Please enter a valid file path (data-12345-67.csv)";
                                 }
 
@@ -188,10 +188,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             ),
                             TextButton(
                               onPressed: () async {
-                                if (_emailFormKey.currentState?.validate() ??
+                                if (_importFormKey.currentState?.validate() ??
                                     false) {
                                   String path = await DataIOService.getFilePath(
-                                      emailTextController.text);
+                                      importTextController.text);
                                   String content =
                                       await DataIOService.readFile(path);
                                   Logger.info("content: $content");

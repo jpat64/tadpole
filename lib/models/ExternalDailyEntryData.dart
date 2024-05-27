@@ -27,9 +27,10 @@ class ExternalDailyEntryData {
         current = entry.current,
         points = entry.points,
         pallor = entry.pallor,
-        notes = entry.notes ?? "--",
-        tags = entry.tags?.map<String>((element) => element.text).toList() ??
-            <String>["--"];
+        notes = (entry.notes?.isNotEmpty ?? false) ? entry.notes! : "--",
+        tags = (entry.tags?.isNotEmpty ?? false)
+            ? entry.tags!.map<String>((element) => element.text).toList()
+            : <String>["--"];
 
   /// Expected CSV format:
   /// "<yyyy-mm-dd>,<Taken/Not Taken>,<current>,<points>,<pallor>,<notes with comma parse>,<tag texts as || separated list>"

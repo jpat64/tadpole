@@ -2,6 +2,7 @@
 
 import 'dart:io';
 
+import 'package:moonbase/models/DailyEntry.dart';
 import 'package:moonbase/models/ExternalDailyEntryData.dart';
 import 'package:moonbase/services/DatabaseService.dart';
 import 'package:moonbase/services/Logger.dart';
@@ -37,6 +38,7 @@ class DataIOService {
   static Future<bool> importContent(String content) async {
     // content is a csv file, \n-separated lines
     List<String> csvStrings = content.split("\n");
+    csvStrings.removeAt(0); // remove first line, since it's the columns
     List<ExternalDailyEntryData> externalEntryData = csvStrings
         .map<ExternalDailyEntryData>(
             (element) => ExternalDailyEntryData.fromCsv(csvString: element))
@@ -49,9 +51,21 @@ class DataIOService {
       if (instance.existsEntryForDay(extEntry.epochDate)) {
         Logger.warning(
             "data import conflict: deleting on-device entry for epochDate: ${extEntry.epochDate}");
+        bool deleteSuccess = await instance
+            .removeDailyEntry(DailyEntry.generateId(extEntry.epochDate));
+        if (!deleteSuccess) {
+          Logger.warning(
+              "data import conflict: unable to delete entry ${DailyEntry.generateId(extEntry.epochDate)}");
+        }
+        success = success || deleteSuccess;
       }
 
-      success = success || await instance.processExternalEntry(extEntry);
+      bool addSuccess = await instance.processExternalEntry(extEntry);
+      if (!addSuccess) {
+        Logger.warning(
+            "data import add entry failed for ${DailyEntry.generateId(extEntry.epochDate)}");
+      }
+      success = success || addSuccess;
     }
 
     return success;

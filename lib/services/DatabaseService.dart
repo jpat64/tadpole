@@ -63,6 +63,8 @@ class DatabaseService {
   }
 
   Future<bool> processExternalEntry(ExternalDailyEntryData extEntry) async {
+    Logger.info("processExternalEntry ${extEntry.epochDate}");
+
     // for tag in tags:
     // see if tag exists,
     // if tag does not exist, make it
@@ -76,6 +78,7 @@ class DatabaseService {
         newTags.add(tagText);
       }
     }
+    Logger.info("external data processing: adding tags $newTags");
     bool success = await addTags(newTags);
     entryTags = _dailyEntryTagBox.values.toList();
 
@@ -90,6 +93,7 @@ class DatabaseService {
       tags: extEntryTags?.map((element) => searchTags(element)[0]).toList(),
       secured: extEntry.secured,
     );
+    Logger.info("external data processing: adding daily entry $entry");
     success = await addDailyEntry(entry);
     return success;
   }
