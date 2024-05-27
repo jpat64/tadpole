@@ -7,7 +7,8 @@ import 'package:moonbase/utils/data/Pair.dart';
 class DateTimeUtils {
   static const int MILLIS_PER_DAY = 86400 * 1000;
 
-  static DateFormat dateFormat = DateFormat(DateFormat.YEAR_MONTH_DAY);
+  static DateFormat dateFormat =
+      DateFormat(DateFormat.YEAR_MONTH_DAY.replaceAll(",", ""));
 
   static int epochDays(DateTime dateTime) {
     return (dateTime.millisecondsSinceEpoch / MILLIS_PER_DAY).ceil();

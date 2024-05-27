@@ -10,7 +10,7 @@ class DataIOService {
     DatabaseService instance = DatabaseService.instance();
 
     List<String> entriesAsCsvs = instance.getLinesForExport();
-    return entriesAsCsvs.join("\n");
+    return "Date,Medication,Current,Points,Pallor,Notes,Tags\n${entriesAsCsvs.join("\n")}";
   }
 
   static Future<String> getFilePath(String path) async {

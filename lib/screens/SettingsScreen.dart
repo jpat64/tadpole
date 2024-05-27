@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:moonbase/components/MoonbaseBottomBar.dart';
 import 'package:moonbase/components/MoonbaseDateTimeSelector.dart';
 import 'package:moonbase/services/DataIOService.dart';
+import 'package:moonbase/services/Logger.dart';
 import 'package:moonbase/utils/DateTimeUtils.dart';
 import 'package:moonbase/utils/Palette.dart';
 
@@ -25,6 +26,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late DateTime relevantDateTime;
   TextEditingController emailTextController = TextEditingController();
   final GlobalKey<FormState> _emailFormKey = GlobalKey<FormState>();
+  TextEditingController importTextController = TextEditingController();
+  final GlobalKey<FormState> _importFormKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -80,67 +83,128 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ElevatedButton(
                 onPressed: () {
                   showDialog(
-                      context: context,
-                      builder: (context) => Form(
-                          key: _emailFormKey,
-                          child: AlertDialog(
-                            content: ListTile(
-                              leading: const Icon(Icons.mail),
-                              title: const Text(
-                                  "Send Data to which email address?"),
-                              subtitle: TextFormField(
-                                validator: (value) {
-                                  if (value == null) {
-                                    return "Please enter a valid email address.";
-                                  }
+                    context: context,
+                    builder: (context) => Form(
+                      key: _emailFormKey,
+                      child: AlertDialog(
+                        content: ListTile(
+                          leading: const Icon(Icons.mail),
+                          title:
+                              const Text("Send Data to which email address?"),
+                          subtitle: TextFormField(
+                            validator: (value) {
+                              if (value == null) {
+                                return "Please enter a valid email address.";
+                              }
 
-                                  RegExp emailRegex = RegExp(r'.*(@).*(\.).*');
-                                  if (false == emailRegex.hasMatch(value)) {
-                                    return "Please enter a valid email adddress (something@somewhere.xyz)";
-                                  }
+                              RegExp emailRegex = RegExp(r'.*(@).*(\.).*');
+                              if (false == emailRegex.hasMatch(value)) {
+                                return "Please enter a valid email adddress (something@somewhere.xyz)";
+                              }
 
-                                  return null;
-                                },
-                                controller: emailTextController,
-                              ),
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  context.pop();
-                                },
-                                child: const Text("Cancel"),
-                              ),
-                              TextButton(
-                                onPressed: () async {
-                                  if (_emailFormKey.currentState?.validate() ??
-                                      false) {
-                                    String content = await DataIOService
-                                        .exportDataAsString();
-                                    String path = await DataIOService.getFilePath(
-                                        "data-${DateTimeUtils.epochDays(DateTime.now())}-${Random().nextInt(100)}.csv");
-                                    DataIOService.saveFile(path, content);
+                              return null;
+                            },
+                            controller: emailTextController,
+                          ),
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              context.pop();
+                            },
+                            child: const Text("Cancel"),
+                          ),
+                          TextButton(
+                            onPressed: () async {
+                              if (_emailFormKey.currentState?.validate() ??
+                                  false) {
+                                String content =
+                                    await DataIOService.exportDataAsString();
+                                String path = await DataIOService.getFilePath(
+                                    "data-${DateTimeUtils.epochDays(DateTime.now())}-${Random().nextInt(100)}.csv");
+                                DataIOService.saveFile(path, content);
 
-                                    Email email = Email(
-                                        body:
-                                            "Moonbase Data Export on ${DateTimeUtils.stringFromEpochDays(DateTimeUtils.epochDays(DateTime.now()))}",
-                                        recipients: [emailTextController.text],
-                                        subject: "Moonbase Data Export",
-                                        attachmentPaths: [path]);
+                                Email email = Email(
+                                    body:
+                                        "Moonbase Data Export on ${DateTimeUtils.stringFromEpochDays(DateTimeUtils.epochDays(DateTime.now()))}",
+                                    recipients: [emailTextController.text],
+                                    subject: "Moonbase Data Export",
+                                    attachmentPaths: [path]);
 
-                                    FlutterEmailSender.send(email);
-                                  }
-                                },
-                                child: const Text("Send"),
-                              )
-                            ],
-                          )));
+                                FlutterEmailSender.send(email);
+                              }
+                            },
+                            child: const Text("Send"),
+                          )
+                        ],
+                      ),
+                    ),
+                  );
                 },
                 child: const Text(
                   "Export Data",
                   style: TextStyle(color: Palette.white),
                 ),
               ),
+              Divider(color: Palette.tan[500]!),
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Text("Import Data:"),
+              ),
+              ElevatedButton(
+                  onPressed: () async {
+                    showDialog(
+                      context: context,
+                      builder: (context) => Form(
+                        key: _importFormKey,
+                        child: AlertDialog(
+                          content: ListTile(
+                            leading: const Icon(Icons.mail),
+                            title: const Text(
+                                "Which File? Make sure it's saved to your device."),
+                            subtitle: TextFormField(
+                              validator: (value) {
+                                if (value == null) {
+                                  return "Please enter a valid file path.";
+                                }
+
+                                RegExp emailRegex =
+                                    RegExp(r'(data-).*(-).*(\.csv)');
+                                if (false == emailRegex.hasMatch(value)) {
+                                  return "Please enter a valid file path (data-12345-67.csv)";
+                                }
+
+                                return null;
+                              },
+                              controller: importTextController,
+                            ),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                context.pop();
+                              },
+                              child: const Text("Cancel"),
+                            ),
+                            TextButton(
+                              onPressed: () async {
+                                if (_emailFormKey.currentState?.validate() ??
+                                    false) {
+                                  String path = await DataIOService.getFilePath(
+                                      emailTextController.text);
+                                  String content =
+                                      await DataIOService.readFile(path);
+                                  Logger.info("content: $content");
+                                }
+                              },
+                              child: const Text("Import"),
+                            )
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Text("Import Data")),
             ],
           ),
         ),
