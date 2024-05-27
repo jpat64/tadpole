@@ -1,13 +1,24 @@
 // ignore_for_file: file_names, constant_identifier_names
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:moonbase/utils/data/Pair.dart';
 
 class DateTimeUtils {
   static const int MILLIS_PER_DAY = 86400 * 1000;
 
+  static DateFormat dateFormat = DateFormat(DateFormat.YEAR_MONTH_DAY);
+
   static int epochDays(DateTime dateTime) {
     return (dateTime.millisecondsSinceEpoch / MILLIS_PER_DAY).ceil();
+  }
+
+  static int epochDaysFromString(String dateString) {
+    return epochDays(DateTime.parse(dateString));
+  }
+
+  static String stringFromEpochDays(int epochDays) {
+    return dateFormat.format(dateFromEpochDays(epochDays));
   }
 
   static DateTime dateFromEpochDays(int epochDays) {

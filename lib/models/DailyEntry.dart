@@ -43,6 +43,20 @@ class DailyEntry {
     return "E$epochDate";
   }
 
+  Map<String, dynamic> toJson() => {
+        "id": id,
+        "epochDate": epochDate,
+        "notes": "\"$notes\"",
+        "current": current,
+        "points": points,
+        "pallor": pallor,
+        "secured": secured,
+        "tags": tags
+                ?.map<Map<String, dynamic>>((element) => element.toJson())
+                .toList() ??
+            [],
+      };
+
   @override
   String toString() {
     return "DailyEntry: epochDate:$epochDate current:$current points:$points pallor:$pallor tags:$tags notes:$notes secured:$secured";

@@ -19,6 +19,11 @@ class DailyEntryTag {
     return "ET$textSum${DateTime.now().millisecondsSinceEpoch.toRadixString(36)}";
   }
 
+  Map<String, dynamic> toJson() => {
+        "id": id,
+        "text": text,
+      };
+
   @override
   String toString() {
     return "DailyEntryTag: id:$id text:$text";

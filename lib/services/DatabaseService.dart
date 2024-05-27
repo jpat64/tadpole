@@ -3,6 +3,7 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:moonbase/models/DailyEntry.dart';
 import 'package:moonbase/models/DailyEntryTag.dart';
+import 'package:moonbase/models/ExternalDailyEntryData.dart';
 import 'package:moonbase/services/Logger.dart';
 
 class DatabaseService {
@@ -44,6 +45,21 @@ class DatabaseService {
     } catch (e) {
       Logger.warning(e.toString());
     }
+  }
+
+  ///////// DAILY ENTRIES
+
+  List<String> getLinesForExport() {
+    List<DailyEntry> entries = _dailyEntryBox.values.toList();
+
+    List<String> entriesAsCsvs = [];
+    for (DailyEntry entry in entries) {
+      ExternalDailyEntryData external =
+          ExternalDailyEntryData.fromDailyEntry(entry: entry);
+      entriesAsCsvs.add(external.toCsv());
+    }
+
+    return entriesAsCsvs;
   }
 
   ///////// DAILY ENTRIES
