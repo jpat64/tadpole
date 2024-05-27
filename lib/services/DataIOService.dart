@@ -2,7 +2,9 @@
 
 import 'dart:io';
 
+import 'package:moonbase/models/ExternalDailyEntryData.dart';
 import 'package:moonbase/services/DatabaseService.dart';
+import 'package:moonbase/services/Logger.dart';
 import 'package:path_provider/path_provider.dart';
 
 class DataIOService {
@@ -30,5 +32,28 @@ class DataIOService {
     File file = File(path);
 
     return await file.readAsString();
+  }
+
+  static Future<bool> importContent(String content) async {
+    // content is a csv file, \n-separated lines
+    List<String> csvStrings = content.split("\n");
+    List<ExternalDailyEntryData> externalEntryData = csvStrings
+        .map<ExternalDailyEntryData>(
+            (element) => ExternalDailyEntryData.fromCsv(csvString: element))
+        .toList();
+
+    DatabaseService instance = DatabaseService.instance();
+    bool success = true;
+
+    for (ExternalDailyEntryData extEntry in externalEntryData) {
+      if (instance.existsEntryForDay(extEntry.epochDate)) {
+        Logger.warning(
+            "data import conflict: deleting on-device entry for epochDate: ${extEntry.epochDate}");
+      }
+
+      success = success || await instance.processExternalEntry(extEntry);
+    }
+
+    return success;
   }
 }

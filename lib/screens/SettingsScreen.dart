@@ -195,6 +195,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   String content =
                                       await DataIOService.readFile(path);
                                   Logger.info("content: $content");
+
+                                  bool success =
+                                      await DataIOService.importContent(
+                                          content);
+                                  if (success && context.mounted) {
+                                    context.pop();
+                                  } else {
+                                    Logger.warning(
+                                        "import data not successful");
+                                  }
                                 }
                               },
                               child: const Text("Import"),

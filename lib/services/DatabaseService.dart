@@ -47,7 +47,7 @@ class DatabaseService {
     }
   }
 
-  ///////// DAILY ENTRIES
+  ///////// IMPORT/EXPORT ENTRIES AND TAGS
 
   List<String> getLinesForExport() {
     List<DailyEntry> entries = _dailyEntryBox.values.toList();
@@ -60,6 +60,38 @@ class DatabaseService {
     }
 
     return entriesAsCsvs;
+  }
+
+  Future<bool> processExternalEntry(ExternalDailyEntryData extEntry) async {
+    // for tag in tags:
+    // see if tag exists,
+    // if tag does not exist, make it
+    List<DailyEntryTag> entryTags = _dailyEntryTagBox.values.toList();
+    List<String> newTags = <String>[];
+    List<String>? extEntryTags =
+        extEntry.tags[0] == "--" ? null : extEntry.tags;
+    for (String tagText in extEntryTags ?? []) {
+      if (entryTags.where((element) => element.text == tagText).isEmpty &&
+          (false == newTags.contains(tagText))) {
+        newTags.add(tagText);
+      }
+    }
+    bool success = await addTags(newTags);
+    entryTags = _dailyEntryTagBox.values.toList();
+
+    // then, make DailyEntry with tags
+    // addDailyEntry with DailyEntry
+    DailyEntry entry = DailyEntry(
+      current: extEntry.current,
+      points: extEntry.points,
+      pallor: extEntry.pallor,
+      epochDate: extEntry.epochDate,
+      notes: extEntry.notes == "--" ? null : extEntry.notes,
+      tags: extEntryTags?.map((element) => searchTags(element)[0]).toList(),
+      secured: extEntry.secured,
+    );
+    success = await addDailyEntry(entry);
+    return success;
   }
 
   ///////// DAILY ENTRIES
