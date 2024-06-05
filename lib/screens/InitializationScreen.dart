@@ -39,7 +39,7 @@ class _InitializationScreenState extends State<InitializationScreen> {
         appBar: AppBar(title: const Text("Calendar")),
         body: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
           Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Image.asset("assets/images/logo/light-logo.png"),
+            Image.asset("assets/images/logo/dark-logo.png"),
           ])
         ]));
   }
