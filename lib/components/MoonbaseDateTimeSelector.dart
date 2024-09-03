@@ -1,6 +1,7 @@
 // ignore_for_file: file_names
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -29,6 +30,8 @@ class _MoonbaseDateTimeSelectorState extends State<MoonbaseDateTimeSelector> {
   late int year;
   late int month;
   late int? day;
+  Color? iconColor;
+  Color? iconBackgroundColor;
 
   final DateFormat monthFormat = DateFormat("MMMM");
 
@@ -55,6 +58,16 @@ class _MoonbaseDateTimeSelectorState extends State<MoonbaseDateTimeSelector> {
 
   @override
   Widget build(BuildContext context) {
+    SchedulerBinding.instance.addPostFrameCallback((timestamp) async {
+      if (iconColor == null || iconBackgroundColor == null) {
+        Palette currentPalette = await Palette.currentPalette;
+        setState(() {
+          iconColor = currentPalette.text;
+          iconBackgroundColor = currentPalette.accent;
+        });
+      }
+    });
+
     return ListTile(
         titleAlignment: ListTileTitleAlignment.top,
         title: SizedBox(
@@ -121,10 +134,10 @@ class _MoonbaseDateTimeSelectorState extends State<MoonbaseDateTimeSelector> {
                           }
                         }),
                   IconButton(
-                      icon: const Icon(Icons.arrow_forward_ios_rounded,
-                          color: Palette.white),
+                      icon: Icon(Icons.arrow_forward_ios_rounded,
+                          color: iconColor),
                       style: IconButton.styleFrom(
-                        backgroundColor: Palette.green[500]!,
+                        backgroundColor: iconBackgroundColor,
                       ),
                       onPressed: () {
                         if (day == null) {

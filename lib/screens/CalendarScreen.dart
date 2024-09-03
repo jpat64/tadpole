@@ -1,6 +1,7 @@
 // ignore_for_file: file_names
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moonbase/components/LoadingWidget.dart';
 import 'package:moonbase/components/MoonbaseBottomBar.dart';
@@ -27,6 +28,7 @@ class CalendarScreen extends StatefulWidget {
 
 class _CalendarScreenState extends State<CalendarScreen> {
   DateTime? relevantDateTime;
+  Palette? palette;
 
   DateFormat monthYear = DateFormat("MMMM yyyy");
 
@@ -57,10 +59,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     height: MediaQuery.of(context).size.height * 0.025,
                     width: MediaQuery.of(context).size.width * 0.125,
                     child: Container(
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                           border: Border(
-                              bottom:
-                                  BorderSide(color: Palette.black, width: 2))),
+                              bottom: BorderSide(
+                                  color: palette?.text ?? Palette.basic.text,
+                                  width: 2))),
                       child: Text(
                         element,
                         textAlign: TextAlign.center,
@@ -85,11 +88,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     width: MediaQuery.of(context).size.width * 0.125,
                     child: (subelement.first != "--")
                         ? MoonbaseDayButton(
-                            textColor: Palette.black,
-                            activeColors:
-                                Pair(Palette.tan[100]!, Palette.tan[500]!),
-                            inactiveColors:
-                                Pair(Palette.gray[100]!, Palette.gray[500]!),
+                            palette: palette ?? Palette.basic,
                             data: subelement,
                           )
                         : null,
@@ -103,6 +102,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   @override
   Widget build(BuildContext context) {
+    SchedulerBinding.instance.addPostFrameCallback((timestamp) async {
+      if (palette == null) {
+        Palette foundPalette = await Palette.currentPalette;
+        setState(() {
+          palette = foundPalette;
+        });
+      }
+    });
+
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -112,8 +120,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               IconButton(
-                  icon: const Icon(Icons.arrow_back_ios_rounded,
-                      color: Palette.black),
+                  icon:
+                      Icon(Icons.arrow_back_ios_rounded, color: palette?.text),
                   onPressed: () {
                     if (relevantDateTime != null) {
                       DateTime lastMonth =
@@ -129,8 +137,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   style: const TextStyle(fontFamily: "Freeman")),
               const Spacer(),
               IconButton(
-                  icon: const Icon(Icons.arrow_forward_ios_rounded,
-                      color: Palette.black),
+                  icon: Icon(Icons.arrow_forward_ios_rounded,
+                      color: palette?.text),
                   onPressed: () {
                     if (relevantDateTime != null) {
                       DateTime nextMonth =
@@ -154,8 +162,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
               )
             : const LoadingWidget(),
       ),
-      bottomNavigationBar:
-          const MoonbaseBottomBar(selectedIndex: CalendarScreen.navIndex),
+      bottomNavigationBar: MoonbaseBottomBar(
+          palette: palette ?? Palette.basic,
+          selectedIndex: CalendarScreen.navIndex),
     );
   }
 }

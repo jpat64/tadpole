@@ -3,6 +3,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_email_sender/flutter_email_sender.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moonbase/components/MoonbaseBottomBar.dart';
@@ -30,6 +31,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   TextEditingController importTextController = TextEditingController();
   final GlobalKey<FormState> _importFormKey = GlobalKey<FormState>();
 
+  Palette? palette;
+
   @override
   void initState() {
     super.initState();
@@ -39,6 +42,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    SchedulerBinding.instance.addPostFrameCallback((timestamp) async {
+      if (palette == null) {
+        Palette foundPalette = await Palette.currentPalette;
+        setState(() {
+          palette = foundPalette;
+        });
+      }
+    });
     return GestureDetector(
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
@@ -66,7 +77,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 year: relevantDateTime.year,
                 month: relevantDateTime.month,
               ),
-              Divider(color: Palette.tan[500]!),
+              Divider(color: palette?.primary),
               const Align(
                 alignment: Alignment.centerLeft,
                 child: Text("Go to Date:"),
@@ -76,14 +87,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 month: relevantDateTime.month,
                 day: relevantDateTime.day,
               ),
-              Divider(color: Palette.tan[500]!),
+              Divider(color: palette?.primary),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                        backgroundColor: Palette.blue[500],
-                        foregroundColor: Palette.white),
+                        backgroundColor: palette?.primary,
+                        foregroundColor: palette?.background),
                     onPressed: () {
                       showDialog(
                         context: context,
@@ -113,8 +124,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             actions: [
                               TextButton(
                                 style: TextButton.styleFrom(
-                                    backgroundColor: Palette.tan[200],
-                                    foregroundColor: Palette.black),
+                                    backgroundColor: palette?.background,
+                                    foregroundColor: palette?.text),
                                 onPressed: () {
                                   context.pop();
                                 },
@@ -122,8 +133,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               ),
                               TextButton(
                                 style: TextButton.styleFrom(
-                                    backgroundColor: Palette.blue[500],
-                                    foregroundColor: Palette.white),
+                                    backgroundColor: palette?.primary,
+                                    foregroundColor: palette?.background),
                                 onPressed: () async {
                                   if (_emailFormKey.currentState?.validate() ??
                                       false) {
@@ -156,8 +167,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                        backgroundColor: Palette.green[500],
-                        foregroundColor: Palette.white),
+                        backgroundColor: palette?.accent,
+                        foregroundColor: palette?.text),
                     onPressed: () async {
                       showDialog(
                         context: context,
@@ -188,8 +199,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             actions: [
                               TextButton(
                                 style: TextButton.styleFrom(
-                                    backgroundColor: Palette.tan[200],
-                                    foregroundColor: Palette.black),
+                                    backgroundColor: palette?.background,
+                                    foregroundColor: palette?.text),
                                 onPressed: () {
                                   context.pop();
                                 },
@@ -197,8 +208,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               ),
                               TextButton(
                                 style: TextButton.styleFrom(
-                                    backgroundColor: Palette.green[500],
-                                    foregroundColor: Palette.white),
+                                    backgroundColor: palette?.accent,
+                                    foregroundColor: palette?.background),
                                 onPressed: () async {
                                   if (_importFormKey.currentState?.validate() ??
                                       false) {
@@ -231,8 +242,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Palette.red[500],
-                      foregroundColor: Palette.white,
+                      backgroundColor: palette?.error,
+                      foregroundColor: palette?.text,
                     ),
                     onPressed: () async {
                       showDialog(
@@ -249,8 +260,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           actions: [
                             TextButton(
                               style: TextButton.styleFrom(
-                                  backgroundColor: Palette.tan[200],
-                                  foregroundColor: Palette.black),
+                                  backgroundColor: palette?.background,
+                                  foregroundColor: palette?.text),
                               onPressed: () {
                                 context.pop();
                               },
@@ -258,8 +269,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             ),
                             TextButton(
                               style: TextButton.styleFrom(
-                                  backgroundColor: Palette.red[500],
-                                  foregroundColor: Palette.white),
+                                  backgroundColor: palette?.error,
+                                  foregroundColor: palette?.text),
                               onPressed: () async {
                                 DatabaseService instance =
                                     DatabaseService.instance();
@@ -282,8 +293,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ],
           ),
         ),
-        bottomNavigationBar:
-            const MoonbaseBottomBar(selectedIndex: SettingsScreen.navIndex),
+        bottomNavigationBar: MoonbaseBottomBar(
+            palette: palette ?? Palette.basic,
+            selectedIndex: SettingsScreen.navIndex),
       ),
     );
   }

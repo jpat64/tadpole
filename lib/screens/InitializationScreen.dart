@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moonbase/screens/CalendarScreen.dart';
 import 'package:moonbase/services/DatabaseService.dart';
+import 'package:moonbase/services/Logger.dart';
+import 'package:moonbase/services/SharedPreferencesService.dart';
 import 'package:moonbase/utils/DateTimeUtils.dart';
 
 class InitializationScreen extends StatefulWidget {
@@ -20,8 +22,23 @@ class _InitializationScreenState extends State<InitializationScreen> {
   Future<void> setup() async {
     await DatabaseService.initialize();
 
-    // DatabaseService instance = DatabaseService.instance();
-    // var success = await instance.trimTags();
+    late bool firstTime;
+    try {
+      firstTime = await SharedPreferencesService.firstTimeFlag;
+    } catch (e) {
+      firstTime = true;
+      await SharedPreferencesService.setFirstTimeFlag(true);
+    }
+    Logger.info("Startup firstTime is $firstTime");
+
+    late String selectedThemeName;
+    try {
+      selectedThemeName = await SharedPreferencesService.selectedThemeName;
+    } catch (e) {
+      selectedThemeName = "basic";
+      await SharedPreferencesService.setSelectedThemeName("basic");
+    }
+    Logger.info("Startup selectedThemeName is $selectedThemeName");
   }
 
   @override
@@ -36,11 +53,11 @@ class _InitializationScreenState extends State<InitializationScreen> {
     });
 
     return Scaffold(
-        appBar: AppBar(title: const Text("Calendar")),
-        body: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Image.asset("assets/images/logo/light-logo.png"),
-          ])
+        appBar: AppBar(title: const Text("(M) Moonbase")),
+        body: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Image.asset("assets/images/app icon/app icon large.png",
+              height: MediaQuery.of(context).size.height * 0.8,
+              width: MediaQuery.of(context).size.width * 0.8),
         ]));
   }
 }

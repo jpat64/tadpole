@@ -10,17 +10,11 @@ import 'package:moonbase/utils/Palette.dart';
 import 'package:moonbase/utils/data/Pair.dart';
 
 class MoonbaseDayButton extends StatelessWidget {
-  final Color textColor;
-  final Pair<Color, Color> activeColors;
-  final Pair<Color, Color> inactiveColors;
+  final Palette palette;
   final Pair<String, DateTime?>? data;
 
   const MoonbaseDayButton(
-      {super.key,
-      required this.textColor,
-      required this.activeColors,
-      required this.inactiveColors,
-      required this.data});
+      {super.key, required this.palette, required this.data});
 
   @override
   Widget build(BuildContext context) {
@@ -31,30 +25,26 @@ class MoonbaseDayButton extends StatelessWidget {
     }
     List<Color> badgeColors = <Color>[];
     if (entry?.secured ?? false) {
-      badgeColors.add(Palette.orange[500]!);
+      badgeColors.add(palette.accent);
     }
-    if ((entry?.current ?? 0) > 1) {
-      badgeColors.add(Palette.red[500]!);
+    if ((entry?.current ?? 0) > 1 ||
+        (entry?.points ?? 0) > 1 ||
+        (entry?.pallor ?? 0) > 1) {
+      badgeColors.add(palette.splash);
     }
-    if ((entry?.points ?? 0) > 1) {
-      badgeColors.add(Palette.pink[500]!);
-    }
-    if ((entry?.pallor ?? 0) > 1) {
-      badgeColors.add(Palette.purple[500]!);
-    }
-    if ((entry?.tags?.length ?? 0) > 0) {
-      badgeColors.add(Palette.green[500]!);
-    }
-    if (entry?.notes?.isNotEmpty ?? false) {
-      badgeColors.add(Palette.blue[500]!);
+    if ((entry?.tags?.isNotEmpty ?? false) ||
+        (entry?.notes?.isNotEmpty ?? false)) {
+      badgeColors.add(palette.primary);
     }
 
     return TextButton(
       style: TextButton.styleFrom(
-        backgroundColor:
-            entry != null ? activeColors.first : inactiveColors.first,
-        shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.only(topLeft: Radius.circular(15))),
+        backgroundColor: entry != null ? palette.secondary : palette.background,
+        shape: RoundedRectangleBorder(
+            side: BorderSide(
+                color: entry != null ? palette.secondary : palette.off),
+            borderRadius:
+                const BorderRadius.only(topLeft: Radius.circular(15))),
       ),
       onPressed: () {
         context.pushNamed("/entry", pathParameters: <String, String>{
@@ -70,14 +60,13 @@ class MoonbaseDayButton extends StatelessWidget {
             decoration: BoxDecoration(
               border: Border(
                 bottom: BorderSide(
-                    color:
-                        entry != null ? activeColors.last : inactiveColors.last,
+                    color: entry != null ? palette.primary : palette.disabled,
                     width: 2),
               ),
             ),
             child: Text(
               data?.first ?? "--",
-              style: TextStyle(fontSize: 16, color: textColor),
+              style: TextStyle(fontSize: 16, color: palette.text),
             ),
           ),
           const Spacer(),

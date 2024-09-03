@@ -1,11 +1,11 @@
 // ignore_for_file: file_names
 
 import 'package:flutter/material.dart';
-import 'package:moonbase/utils/Palette.dart';
 
 class MoonbaseStatusButtonBar extends StatelessWidget {
   final void Function(int) onPressedCallback;
   final int initialValue;
+  final Color zeroColor;
   final Color activeColor;
   final Color inactiveColor;
   final Color dividerColor;
@@ -15,6 +15,7 @@ class MoonbaseStatusButtonBar extends StatelessWidget {
     super.key,
     required this.onPressedCallback,
     required this.initialValue,
+    required this.zeroColor,
     required this.activeColor,
     required this.inactiveColor,
     required this.dividerColor,
@@ -28,6 +29,7 @@ class MoonbaseStatusButtonBar extends StatelessWidget {
         MoonbaseStatusButton(
           currentLevel: initialValue,
           targetLevel: 0,
+          zeroColor: zeroColor,
           activeColor: activeColor,
           inactiveColor: inactiveColor,
           onPressedCallback: () {
@@ -39,6 +41,7 @@ class MoonbaseStatusButtonBar extends StatelessWidget {
         MoonbaseStatusButton(
           currentLevel: initialValue,
           targetLevel: 1,
+          zeroColor: zeroColor,
           activeColor: activeColor,
           inactiveColor: inactiveColor,
           onPressedCallback: () {
@@ -52,6 +55,7 @@ class MoonbaseStatusButtonBar extends StatelessWidget {
         MoonbaseStatusButton(
           currentLevel: initialValue,
           targetLevel: 2,
+          zeroColor: zeroColor,
           activeColor: activeColor,
           inactiveColor: inactiveColor,
           onPressedCallback: () {
@@ -63,6 +67,7 @@ class MoonbaseStatusButtonBar extends StatelessWidget {
         MoonbaseStatusButton(
           currentLevel: initialValue,
           targetLevel: 3,
+          zeroColor: zeroColor,
           activeColor: activeColor,
           inactiveColor: inactiveColor,
           onPressedCallback: () {
@@ -74,6 +79,7 @@ class MoonbaseStatusButtonBar extends StatelessWidget {
         MoonbaseStatusButton(
           currentLevel: initialValue,
           targetLevel: 4,
+          zeroColor: zeroColor,
           activeColor: activeColor,
           inactiveColor: inactiveColor,
           onPressedCallback: () {
@@ -90,6 +96,7 @@ class MoonbaseStatusButtonBar extends StatelessWidget {
 class MoonbaseStatusButton extends StatelessWidget {
   final int currentLevel;
   final int targetLevel;
+  final Color zeroColor;
   final Color activeColor;
   final Color inactiveColor;
   final void Function() onPressedCallback;
@@ -98,6 +105,7 @@ class MoonbaseStatusButton extends StatelessWidget {
     super.key,
     required this.currentLevel,
     required this.targetLevel,
+    required this.zeroColor,
     required this.activeColor,
     required this.inactiveColor,
     required this.onPressedCallback,
@@ -112,7 +120,7 @@ class MoonbaseStatusButton extends StatelessWidget {
             onTap: onPressedCallback,
             child: Badge(
               backgroundColor: (targetLevel == 0)
-                  ? Palette.tan[50]!
+                  ? zeroColor
                   : (currentLevel >= targetLevel)
                       ? activeColor
                       : inactiveColor,

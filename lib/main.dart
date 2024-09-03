@@ -22,11 +22,11 @@ class Moonbase extends StatelessWidget {
     return MaterialApp.router(
       title: 'Flutter Demo',
       theme: ThemeData(
-        colorScheme: Palette.lightScheme,
+        colorScheme: Palette.basic.lightTheme,
         textButtonTheme: MoonbaseTheme.textButtonTheme,
         textTheme: MoonbaseTheme.textTheme,
       ),
-      darkTheme: ThemeData(colorScheme: Palette.darkScheme),
+      darkTheme: ThemeData(colorScheme: Palette.basic.darkTheme),
       routerConfig: router,
     );
   }

@@ -42,6 +42,8 @@ class _EntryScreenState extends State<EntryScreen> {
   late int pallor;
   late List<DailyEntryTag> tags;
 
+  Palette? palette;
+
   bool editingMode = false;
   bool loaded = false;
   bool didAnythingChange = false;
@@ -83,12 +85,20 @@ class _EntryScreenState extends State<EntryScreen> {
     });
   }
 
+  Future<void> loadPalette() async {
+    Palette foundPalette = await Palette.currentPalette;
+    setState(() {
+      palette = foundPalette;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    WidgetsBinding.instance.addPostFrameCallback((timestamp) {
+    WidgetsBinding.instance.addPostFrameCallback((timestamp) async {
       // only run if not loaded
       if (loaded == false) {
         loadDailyEntry();
+        await loadPalette();
         setState(() {
           loaded = true;
         });
@@ -106,8 +116,8 @@ class _EntryScreenState extends State<EntryScreen> {
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 IconButton(
-                    icon: const Icon(Icons.arrow_back_ios_rounded,
-                        color: Palette.black),
+                    icon: Icon(Icons.arrow_back_ios_rounded,
+                        color: palette?.text),
                     onPressed: () {
                       if (relevantDateTime != null) {
                         DateTime lastDay =
@@ -124,11 +134,9 @@ class _EntryScreenState extends State<EntryScreen> {
                 const Spacer(),
                 TextButton(
                     style: TextButton.styleFrom(
-                        foregroundColor:
-                            editingMode ? Palette.white : Palette.black,
-                        backgroundColor: editingMode
-                            ? Palette.blue[500]
-                            : Palette.orange[100]!),
+                        foregroundColor: palette?.background,
+                        backgroundColor:
+                            editingMode ? palette?.accent : palette?.primary),
                     child: Text(editingMode ? "Editing..." : "Edit",
                         style: !editingMode
                             ? const TextStyle(
@@ -140,8 +148,8 @@ class _EntryScreenState extends State<EntryScreen> {
                       });
                     }),
                 IconButton(
-                    icon: const Icon(Icons.arrow_forward_ios_rounded,
-                        color: Palette.black),
+                    icon: Icon(Icons.arrow_forward_ios_rounded,
+                        color: palette?.text),
                     onPressed: () {
                       if (relevantDateTime != null) {
                         DateTime nextDay =
@@ -160,8 +168,7 @@ class _EntryScreenState extends State<EntryScreen> {
             child: loaded
                 ? ListView(children: [
                     MoonbaseEntryCard(
-                        textColor: Palette.black,
-                        backgroundColor: Palette.tan[100]!,
+                        palette: palette ?? Palette.basic,
                         editingMode: editingMode,
                         initialSecured: secured,
                         initialCurrent: current,
@@ -255,7 +262,8 @@ class _EntryScreenState extends State<EntryScreen> {
                             if (didAnythingChange)
                               TextButton(
                                   style: TextButton.styleFrom(
-                                      backgroundColor: Palette.blue[500]),
+                                    backgroundColor: palette?.accent,
+                                  ),
                                   onPressed: () async {
                                     DatabaseService instance =
                                         DatabaseService.instance();
@@ -301,13 +309,14 @@ class _EntryScreenState extends State<EntryScreen> {
                                           "Adding Daily Entry Failed: $epochDate, [$current, $points, $pallor], $notes");
                                     }
                                   },
-                                  child: const Text("Save",
-                                      style: TextStyle(color: Palette.white))),
+                                  child: Text("Save",
+                                      style: TextStyle(
+                                          color: palette?.background))),
                             const SizedBox(width: 24),
                             IconButton(
                               style: IconButton.styleFrom(
-                                  backgroundColor: Palette.red[500],
-                                  foregroundColor: Palette.white),
+                                  backgroundColor: palette?.error,
+                                  foregroundColor: palette?.background),
                               icon: const Icon(Icons.delete),
                               onPressed: () {
                                 showDialog(
@@ -324,18 +333,18 @@ class _EntryScreenState extends State<EntryScreen> {
                                               TextButton(
                                                   style: TextButton.styleFrom(
                                                     backgroundColor:
-                                                        Palette.blue[500],
+                                                        palette?.primary,
                                                   ),
                                                   onPressed: () =>
                                                       context.pop(),
-                                                  child: const Text("Cancel",
+                                                  child: Text("Cancel",
                                                       style: TextStyle(
-                                                          color:
-                                                              Palette.white))),
+                                                          color: palette
+                                                              ?.background))),
                                               TextButton(
                                                   style: TextButton.styleFrom(
                                                     backgroundColor:
-                                                        Palette.red[500],
+                                                        palette?.error,
                                                   ),
                                                   onPressed: () async {
                                                     DatabaseService instance =
@@ -358,11 +367,11 @@ class _EntryScreenState extends State<EntryScreen> {
                                                       });
                                                     }
                                                   },
-                                                  child: const Text(
+                                                  child: Text(
                                                       "Delete this Entry",
                                                       style: TextStyle(
-                                                          color:
-                                                              Palette.white))),
+                                                          color: palette
+                                                              ?.background))),
                                             ]));
                               },
                             )
@@ -370,8 +379,9 @@ class _EntryScreenState extends State<EntryScreen> {
                     )
                   ])
                 : const LoadingWidget()),
-        bottomNavigationBar:
-            const MoonbaseBottomBar(selectedIndex: EntryScreen.navIndex),
+        bottomNavigationBar: MoonbaseBottomBar(
+            palette: palette ?? Palette.basic,
+            selectedIndex: EntryScreen.navIndex),
       ),
     );
   }

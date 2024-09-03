@@ -5,11 +5,14 @@ import 'package:go_router/go_router.dart';
 import 'package:moonbase/screens/CalendarScreen.dart';
 import 'package:moonbase/screens/EntryScreen.dart';
 import 'package:moonbase/screens/SettingsScreen.dart';
+import 'package:moonbase/utils/Palette.dart';
 
 class MoonbaseBottomBar extends StatelessWidget {
+  final Palette palette;
   final int selectedIndex;
 
-  const MoonbaseBottomBar({super.key, required this.selectedIndex});
+  const MoonbaseBottomBar(
+      {super.key, required this.palette, required this.selectedIndex});
 
   static const Map<String, NavigationDestination> navBarItems = {
     CalendarScreen.name: NavigationDestination(
@@ -42,6 +45,7 @@ class MoonbaseBottomBar extends StatelessWidget {
     return NavigationBar(
         destinations: navBarItems.values.toList(),
         selectedIndex: selectedIndex,
+        indicatorColor: palette.splash,
         onDestinationSelected: (value) {
           String path = navBarItems.keys.toList()[value];
           Map<String, String> parameters = defaultParameters(path);
