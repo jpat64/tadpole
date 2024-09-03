@@ -47,34 +47,26 @@ class _CalendarScreenState extends State<CalendarScreen> {
     return ListView(
       children: <Widget>[
             Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                  border: Border(
-                      bottom: BorderSide(
-                          color: Theme.of(context).colorScheme.background,
-                          width: 3))),
+              padding: const EdgeInsets.all(8),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: dayOfWeekNames.map<Widget>((element) {
                   return SizedBox(
-                    height: constraints.biggest.height * 0.025,
+                    height: constraints.biggest.height * 0.03,
                     width: constraints.biggest.width * 0.125,
-                    child: Container(
-                      decoration: BoxDecoration(
-                          border: Border(
-                              bottom: BorderSide(
-                                  color: palette?.text ?? Palette.basic.text,
-                                  width: 2))),
-                      child: Text(
-                        element,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 16),
-                      ),
+                    child: Text(
+                      element,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                   );
                 }).toList(),
               ),
+            ),
+            Divider(
+              thickness: 3,
+              color: palette?.text ?? Palette.basic.text,
             ),
             const SizedBox(height: 12),
           ] +
