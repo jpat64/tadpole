@@ -54,10 +54,12 @@ class _InitializationScreenState extends State<InitializationScreen> {
 
     return Scaffold(
         appBar: AppBar(title: const Text("(M) Moonbase")),
-        body: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Image.asset("assets/images/app icon/app icon large.png",
-              height: MediaQuery.of(context).size.height * 0.8,
-              width: MediaQuery.of(context).size.width * 0.8),
-        ]));
+        body: LayoutBuilder(
+            builder: (context, constraints) =>
+                Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  Image.asset("assets/images/app icon/app icon large.png",
+                      height: constraints.biggest.height * 0.8,
+                      width: constraints.biggest.width * 0.8),
+                ])));
   }
 }

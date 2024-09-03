@@ -20,7 +20,7 @@ class Moonbase extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'Flutter Demo',
+      title: 'Moonbase',
       theme: ThemeData(
         colorScheme: Palette.basic.lightTheme,
         textButtonTheme: MoonbaseTheme.textButtonTheme,

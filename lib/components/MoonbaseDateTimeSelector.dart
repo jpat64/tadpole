@@ -14,9 +14,14 @@ class MoonbaseDateTimeSelector extends StatefulWidget {
   final int year;
   final int month;
   final int? day;
+  final BoxConstraints constraints;
 
   const MoonbaseDateTimeSelector(
-      {super.key, required this.year, required this.month, this.day});
+      {super.key,
+      required this.year,
+      required this.month,
+      this.day,
+      required this.constraints});
 
   @override
   State<MoonbaseDateTimeSelector> createState() =>
@@ -71,7 +76,7 @@ class _MoonbaseDateTimeSelectorState extends State<MoonbaseDateTimeSelector> {
     return ListTile(
         titleAlignment: ListTileTitleAlignment.top,
         title: SizedBox(
-            width: MediaQuery.of(context).size.width * 0.8,
+            width: widget.constraints.biggest.width * 0.8,
             child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [

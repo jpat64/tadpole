@@ -39,7 +39,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   // WIDGET HELPER METHOD
-  ListView getCalendar(BuildContext context, DateTime dateTime) {
+  ListView getCalendar(
+      BuildContext context, BoxConstraints constraints, DateTime dateTime) {
     List<String> dayOfWeekNames = ["S", "M", "T", "W", "R", "F", "S"];
     List<List<Pair<String, DateTime>>> boxNames =
         DateTimeUtils.arrangeMonth(dateTime);
@@ -56,8 +57,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: dayOfWeekNames.map<Widget>((element) {
                   return SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.025,
-                    width: MediaQuery.of(context).size.width * 0.125,
+                    height: constraints.biggest.height * 0.025,
+                    width: constraints.biggest.width * 0.125,
                     child: Container(
                       decoration: BoxDecoration(
                           border: Border(
@@ -84,8 +85,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: element.map<Widget>((subelement) {
                   return SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.1,
-                    width: MediaQuery.of(context).size.width * 0.125,
+                    height: constraints.biggest.height * 0.1,
+                    width: constraints.biggest.width * 0.125,
                     child: (subelement.first != "--")
                         ? MoonbaseDayButton(
                             palette: palette ?? Palette.basic,
@@ -153,14 +154,17 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ),
         ),
       ),
-      body: Container(
-        padding: const EdgeInsets.all(16),
-        child: relevantDateTime != null
-            ? getCalendar(
-                context,
-                relevantDateTime!,
-              )
-            : const LoadingWidget(),
+      body: LayoutBuilder(
+        builder: (context, constraints) => Container(
+          padding: const EdgeInsets.all(16),
+          child: relevantDateTime != null
+              ? getCalendar(
+                  context,
+                  constraints,
+                  relevantDateTime!,
+                )
+              : const LoadingWidget(),
+        ),
       ),
       bottomNavigationBar: MoonbaseBottomBar(
           palette: palette ?? Palette.basic,
