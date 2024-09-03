@@ -9,6 +9,9 @@ PODS:
     - FlutterMacOS
   - pointer_interceptor_ios (0.0.1):
     - Flutter
+  - shared_preferences_foundation (0.0.1):
+    - Flutter
+    - FlutterMacOS
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
@@ -16,6 +19,7 @@ DEPENDENCIES:
   - flutter_keyboard_visibility (from `.symlinks/plugins/flutter_keyboard_visibility/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - pointer_interceptor_ios (from `.symlinks/plugins/pointer_interceptor_ios/ios`)
+  - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
 
 EXTERNAL SOURCES:
   Flutter:
@@ -28,13 +32,16 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/path_provider_foundation/darwin"
   pointer_interceptor_ios:
     :path: ".symlinks/plugins/pointer_interceptor_ios/ios"
+  shared_preferences_foundation:
+    :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
 
 SPEC CHECKSUMS:
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   flutter_email_sender: 10a22605f92809a11ef52b2f412db806c6082d40
   flutter_keyboard_visibility: 0339d06371254c3eb25eeb90ba8d17dca8f9c069
-  path_provider_foundation: 3784922295ac71e43754bd15e0653ccfd36a147c
-  pointer_interceptor_ios: 9280618c0b2eeb80081a343924aa8ad756c21375
+  path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
+  pointer_interceptor_ios: 508241697ff0947f853c061945a8b822463947c1
+  shared_preferences_foundation: fcdcbc04712aee1108ac7fda236f363274528f78
 
 PODFILE CHECKSUM: 819463e6a0290f5a72f145ba7cde16e8b6ef0796
 
