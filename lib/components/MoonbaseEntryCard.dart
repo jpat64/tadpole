@@ -47,7 +47,7 @@ class MoonbaseEntryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-        color: palette.background,
+        color: palette.secondary,
         child: Container(
           padding: const EdgeInsets.all(30),
           child: Column(
@@ -61,7 +61,7 @@ class MoonbaseEntryCard extends StatelessWidget {
                         style: TextStyle(fontSize: 18, color: palette.text)),
                     MoonbaseStatusButton(
                       activeColor: palette.accent,
-                      zeroColor: palette.off,
+                      zeroColor: palette.disabled,
                       currentLevel: initialSecured ? 4 : 0,
                       targetLevel: 4,
                       inactiveColor: palette.disabled,
@@ -89,7 +89,7 @@ class MoonbaseEntryCard extends StatelessWidget {
                       flex: 6,
                       child: MoonbaseStatusButtonBar(
                         activeColor: palette.splash,
-                        inactiveColor: palette.off,
+                        inactiveColor: palette.disabled,
                         dividerColor: palette.primary,
                         zeroColor: palette.text,
                         initialValue: initialCurrent,
@@ -112,7 +112,7 @@ class MoonbaseEntryCard extends StatelessWidget {
                     flex: 6,
                     child: MoonbaseStatusButtonBar(
                       activeColor: palette.splash,
-                      inactiveColor: palette.off,
+                      inactiveColor: palette.disabled,
                       dividerColor: palette.primary,
                       zeroColor: palette.text,
                       initialValue: initialPoints,
@@ -134,7 +134,7 @@ class MoonbaseEntryCard extends StatelessWidget {
                     flex: 6,
                     child: MoonbaseStatusButtonBar(
                       activeColor: palette.splash,
-                      inactiveColor: palette.off,
+                      inactiveColor: palette.disabled,
                       dividerColor: palette.primary,
                       zeroColor: palette.text,
                       initialValue: initialPallor,
@@ -152,7 +152,7 @@ class MoonbaseEntryCard extends StatelessWidget {
                   smallSize: 24,
                   backgroundColor: (editingMode && initialTags.isNotEmpty)
                       ? palette.accent
-                      : palette.off,
+                      : palette.disabled,
                 )
               ]),
               if (editingMode)
@@ -200,7 +200,8 @@ class MoonbaseEntryCard extends StatelessWidget {
                 ListTile(
                     title: Text("No tags yet for this entry.",
                         style: TextStyle(
-                            color: palette.off, fontStyle: FontStyle.italic))),
+                            color: palette.disabled,
+                            fontStyle: FontStyle.italic))),
               Divider(color: palette.primary),
               Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                 Text("notes:",
@@ -210,19 +211,18 @@ class MoonbaseEntryCard extends StatelessWidget {
                   backgroundColor:
                       editingMode || textEditingController.text.isNotEmpty
                           ? palette.primary
-                          : palette.off,
+                          : palette.disabled,
                 )
               ]),
               editingMode
                   ? TextField(
-                      decoration: const InputDecoration(
-                          helperText: "Enter any notes here."),
                       controller: textEditingController,
                       enabled: editingMode,
                       cursorErrorColor: palette.error,
                       onChanged: textInputOnChangedCallback,
                       maxLines: 10,
                       minLines: 6,
+                      style: TextStyle(color: palette.text),
                     )
                   : ListTile(
                       title: textEditingController.text.isNotEmpty
@@ -232,7 +232,7 @@ class MoonbaseEntryCard extends StatelessWidget {
                           : Text(
                               "No notes yet for this entry.",
                               style: TextStyle(
-                                  color: palette.off,
+                                  color: palette.disabled,
                                   fontStyle: FontStyle.italic),
                             ),
                     ),
