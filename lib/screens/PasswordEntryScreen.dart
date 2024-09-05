@@ -3,10 +3,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moonbase/screens/CalendarScreen.dart';
+import 'package:moonbase/services/DatabaseService.dart';
 import 'package:moonbase/services/Logger.dart';
 import 'package:moonbase/services/PasswordCheckerService.dart';
+import 'package:moonbase/services/SharedPreferencesService.dart';
 import 'package:moonbase/utils/DateTimeUtils.dart';
 import 'package:moonbase/utils/Palette.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:moonbase/utils/StringUtils.dart';
 
 class PasswordEntryScreen extends StatefulWidget {
   final String unlock;
@@ -97,12 +101,40 @@ class _PasswordEntryScreenState extends State<PasswordEntryScreen> {
                               if (success && context.mounted) {
                                 Logger.info(
                                     "PasswordEntryScreen .. unlock() success!");
-                                context.goNamed(CalendarScreen.name,
-                                    pathParameters: {
-                                      "epochDate":
-                                          "${DateTimeUtils.epochDays(DateUtils.addDaysToDate(DateTime.now(), 0))}"
-                                    });
+                                Fluttertoast.showToast(
+                                    msg:
+                                        "${widget.unlock.capitalize()} Mode unlocked!",
+                                    backgroundColor: Palette.basic.accent,
+                                    textColor: Palette.basic.text);
+                                DatabaseService instance =
+                                    DatabaseService.instance();
+                                bool success =
+                                    await instance.unlockTheme(widget.unlock);
+                                if (success) {
+                                  if (widget.unlock == "secret") {
+                                    SharedPreferencesService.setSecretModeFlag(
+                                        true);
+                                  }
+                                  if (context.mounted) {
+                                    context.goNamed(CalendarScreen.name,
+                                        pathParameters: {
+                                          "epochDate":
+                                              "${DateTimeUtils.epochDays(DateUtils.addDaysToDate(DateTime.now(), 0))}"
+                                        });
+                                  }
+                                } else {
+                                  Fluttertoast.showToast(
+                                    msg:
+                                        "Something went wrong unlocking ${widget.unlock} mode, but the password was correct!",
+                                    backgroundColor: Palette.basic.error,
+                                    textColor: Palette.basic.text,
+                                  );
+                                }
                               } else {
+                                Fluttertoast.showToast(
+                                    msg: "That didn't work. Try again.",
+                                    backgroundColor: Palette.basic.error,
+                                    textColor: Palette.basic.text);
                                 Logger.info(
                                     "PasswordEntryScreen .. unlock() failure!");
                               }

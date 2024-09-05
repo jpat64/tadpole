@@ -23,6 +23,7 @@ class MoonbaseEntryCard extends StatelessWidget {
   final void Function(DailyEntryTag?) searchOptionSelectedCallback;
   final List<DailyEntryTag> Function(String?) searchCallback;
   final void Function(String) textInputOnChangedCallback;
+  final bool secretMode;
 
   const MoonbaseEntryCard({
     super.key,
@@ -42,6 +43,7 @@ class MoonbaseEntryCard extends StatelessWidget {
     required this.searchOptionSelectedCallback,
     required this.searchCallback,
     required this.textInputOnChangedCallback,
+    required this.secretMode,
   });
 
   @override
@@ -57,7 +59,7 @@ class MoonbaseEntryCard extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text("medication taken:",
+                    Text(secretMode ? "Medication taken?" : "Checked",
                         style: TextStyle(fontSize: 18, color: palette.text)),
                     MoonbaseStatusButton(
                       activeColor: palette.accent,
@@ -81,7 +83,8 @@ class MoonbaseEntryCard extends StatelessWidget {
                   children: [
                     Expanded(
                         flex: 4,
-                        child: Text("flow level:",
+                        child: Text(
+                            secretMode ? "Flow level:" : "Current level:",
                             style:
                                 TextStyle(fontSize: 18, color: palette.text))),
                     const Spacer(flex: 2),
@@ -105,7 +108,7 @@ class MoonbaseEntryCard extends StatelessWidget {
                 child: Row(children: [
                   Expanded(
                       flex: 4,
-                      child: Text("pain level:",
+                      child: Text(secretMode ? "Pain level:" : "Points:",
                           style: TextStyle(fontSize: 18, color: palette.text))),
                   const Spacer(flex: 2),
                   Expanded(
@@ -127,7 +130,8 @@ class MoonbaseEntryCard extends StatelessWidget {
                 child: Row(children: [
                   Expanded(
                       flex: 4,
-                      child: Text("mood level:",
+                      child: Text(
+                          secretMode ? "Moodiness level:" : "Pallor level:",
                           style: TextStyle(fontSize: 18, color: palette.text))),
                   const Spacer(flex: 2),
                   Expanded(

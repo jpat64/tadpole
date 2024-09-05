@@ -9,6 +9,7 @@ import 'package:moonbase/models/DailyEntry.dart';
 import 'package:moonbase/models/DailyEntryTag.dart';
 import 'package:moonbase/services/DatabaseService.dart';
 import 'package:moonbase/services/Logger.dart';
+import 'package:moonbase/services/SharedPreferencesService.dart';
 import 'package:moonbase/utils/DateTimeUtils.dart';
 
 import 'package:intl/intl.dart';
@@ -43,6 +44,7 @@ class _EntryScreenState extends State<EntryScreen> {
   late List<DailyEntryTag> tags;
 
   Palette? palette;
+  bool? secretMode;
 
   bool editingMode = false;
   bool loaded = false;
@@ -54,6 +56,14 @@ class _EntryScreenState extends State<EntryScreen> {
 
     relevantDateTime = DateTimeUtils.dateFromEpochDays(widget.epochDate);
     epochDate = DateTimeUtils.epochDays(relevantDateTime!);
+  }
+
+  Future<void> loadSecretModeToggle() async {
+    bool foundSecretMode =
+        await SharedPreferencesService.secretModeFlag ?? false;
+    setState(() {
+      secretMode = foundSecretMode;
+    });
   }
 
   void loadDailyEntry() {
@@ -99,6 +109,7 @@ class _EntryScreenState extends State<EntryScreen> {
       if (loaded == false) {
         loadDailyEntry();
         await loadPalette();
+        await loadSecretModeToggle();
         setState(() {
           loaded = true;
         });
@@ -117,7 +128,7 @@ class _EntryScreenState extends State<EntryScreen> {
               children: [
                 IconButton(
                     icon: Icon(Icons.arrow_back_ios_rounded,
-                        color: palette?.text),
+                        color: palette?.text ?? Palette.basic.text),
                     onPressed: () {
                       if (relevantDateTime != null) {
                         DateTime lastDay =
@@ -128,28 +139,14 @@ class _EntryScreenState extends State<EntryScreen> {
                         });
                       }
                     }),
+                const Spacer(),
                 Text(
                   dayMonthYear.format(relevantDateTime!),
                 ),
                 const Spacer(),
-                TextButton(
-                    style: TextButton.styleFrom(
-                        foregroundColor: palette?.background,
-                        backgroundColor:
-                            editingMode ? palette?.accent : palette?.primary),
-                    child: Text(editingMode ? "Editing..." : "Edit",
-                        style: !editingMode
-                            ? const TextStyle(
-                                decoration: TextDecoration.underline)
-                            : null),
-                    onPressed: () {
-                      setState(() {
-                        editingMode = !editingMode;
-                      });
-                    }),
                 IconButton(
                     icon: Icon(Icons.arrow_forward_ios_rounded,
-                        color: palette?.text),
+                        color: palette?.text ?? Palette.basic.text),
                     onPressed: () {
                       if (relevantDateTime != null) {
                         DateTime nextDay =
@@ -169,90 +166,91 @@ class _EntryScreenState extends State<EntryScreen> {
             child: loaded
                 ? ListView(children: [
                     MoonbaseEntryCard(
-                        palette: palette ?? Palette.basic,
-                        editingMode: editingMode,
-                        initialSecured: secured,
-                        initialCurrent: current,
-                        initialPoints: points,
-                        initialPallor: pallor,
-                        initialTags: tags,
-                        textEditingController: notesTextController,
-                        securedOnChangedCallback: (value) {
+                      palette: palette ?? Palette.basic,
+                      editingMode: editingMode,
+                      initialSecured: secured,
+                      initialCurrent: current,
+                      initialPoints: points,
+                      initialPallor: pallor,
+                      initialTags: tags,
+                      textEditingController: notesTextController,
+                      securedOnChangedCallback: (value) {
+                        setState(() {
+                          didAnythingChange = true;
+                          secured = value ?? false;
+                        });
+                      },
+                      currentOnChangedCallback: (value) {
+                        setState(() {
+                          didAnythingChange = true;
+                          current = value ?? 0;
+                        });
+                      },
+                      pointsOnChangedCallback: (value) {
+                        setState(() {
+                          didAnythingChange = true;
+                          points = value ?? 0;
+                        });
+                      },
+                      pallorOnChangedCallback: (value) {
+                        setState(() {
+                          didAnythingChange = true;
+                          pallor = value ?? 0;
+                        });
+                      },
+                      tagDeletedCallback: (entryTag) {
+                        if (tags.contains(entryTag)) {
                           setState(() {
                             didAnythingChange = true;
-                            secured = value ?? false;
+                            tags.remove(entryTag);
                           });
-                        },
-                        currentOnChangedCallback: (value) {
-                          setState(() {
-                            didAnythingChange = true;
-                            current = value ?? 0;
-                          });
-                        },
-                        pointsOnChangedCallback: (value) {
-                          setState(() {
-                            didAnythingChange = true;
-                            points = value ?? 0;
-                          });
-                        },
-                        pallorOnChangedCallback: (value) {
-                          setState(() {
-                            didAnythingChange = true;
-                            pallor = value ?? 0;
-                          });
-                        },
-                        tagDeletedCallback: (entryTag) {
-                          if (tags.contains(entryTag)) {
+                        }
+                      },
+                      searchCallback: (searchString) {
+                        if (searchString?.isNotEmpty ?? false) {
+                          DatabaseService instance = DatabaseService.instance();
+                          return instance
+                              .searchTags(searchString!)
+                              .where(
+                                (element) => (tags
+                                        .map<String>(
+                                            (subelement) => subelement.id)
+                                        .contains(element.id) ==
+                                    false),
+                              )
+                              .toList();
+                        }
+                        return [];
+                      },
+                      searchOptionSelectedCallback: (entryTag) {
+                        if (entryTag != null) {
+                          String filteredTagText = entryTag.text;
+                          if (entryTag.text.startsWith("create new tag \"") &&
+                              entryTag.text.endsWith("\"")) {
+                            filteredTagText = entryTag.text.substring(
+                                "create new tag \"".length,
+                                entryTag.text.length - 1);
+                          }
+                          if (tags
+                                  .map<String>((element) => element.text)
+                                  .contains(filteredTagText) ==
+                              false) {
                             setState(() {
                               didAnythingChange = true;
-                              tags.remove(entryTag);
+                              tags.add(DailyEntryTag(
+                                  id: entryTag.id, text: filteredTagText));
                             });
                           }
-                        },
-                        searchCallback: (searchString) {
-                          if (searchString?.isNotEmpty ?? false) {
-                            DatabaseService instance =
-                                DatabaseService.instance();
-                            return instance
-                                .searchTags(searchString!)
-                                .where(
-                                  (element) => (tags
-                                          .map<String>(
-                                              (subelement) => subelement.id)
-                                          .contains(element.id) ==
-                                      false),
-                                )
-                                .toList();
-                          }
-                          return [];
-                        },
-                        searchOptionSelectedCallback: (entryTag) {
-                          if (entryTag != null) {
-                            String filteredTagText = entryTag.text;
-                            if (entryTag.text.startsWith("create new tag \"") &&
-                                entryTag.text.endsWith("\"")) {
-                              filteredTagText = entryTag.text.substring(
-                                  "create new tag \"".length,
-                                  entryTag.text.length - 1);
-                            }
-                            if (tags
-                                    .map<String>((element) => element.text)
-                                    .contains(filteredTagText) ==
-                                false) {
-                              setState(() {
-                                didAnythingChange = true;
-                                tags.add(DailyEntryTag(
-                                    id: entryTag.id, text: filteredTagText));
-                              });
-                            }
-                          }
-                        },
-                        textInputOnChangedCallback: (value) {
-                          setState(() {
-                            didAnythingChange = true;
-                            notes = value;
-                          });
-                        }),
+                        }
+                      },
+                      textInputOnChangedCallback: (value) {
+                        setState(() {
+                          didAnythingChange = true;
+                          notes = value;
+                        });
+                      },
+                      secretMode: secretMode ?? false,
+                    ),
                     const SizedBox(height: 24),
                     // submitting the form
                     Container(
@@ -260,6 +258,24 @@ class _EntryScreenState extends State<EntryScreen> {
                       child: Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
+                            TextButton(
+                                style: TextButton.styleFrom(
+                                    foregroundColor: palette?.background,
+                                    backgroundColor: editingMode
+                                        ? palette?.accent
+                                        : palette?.primary),
+                                child: Text(editingMode ? "Editing..." : "Edit",
+                                    style: !editingMode
+                                        ? const TextStyle(
+                                            decoration:
+                                                TextDecoration.underline)
+                                        : null),
+                                onPressed: () {
+                                  setState(() {
+                                    editingMode = !editingMode;
+                                  });
+                                }),
+                            const Spacer(),
                             if (didAnythingChange)
                               TextButton(
                                   style: TextButton.styleFrom(

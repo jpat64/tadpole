@@ -5,10 +5,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 class SharedPreferencesService {
   static const String SELECTED_THEME_NAME = "moonbaseprefs-selected-theme-name";
   static const String FIRST_TIME_FLAG = "moonbaseprefs-first-time-flag";
+  static const String SECRET_MODE_FLAG = "moonbaseprefs-secret-mode-flag";
 
   static final Map<String, SharedPreferencesDataType> _nameToTypeMap = {
     SharedPreferencesService.SELECTED_THEME_NAME:
         SharedPreferencesDataType.string,
+    SharedPreferencesService.SECRET_MODE_FLAG: SharedPreferencesDataType.bool,
     SharedPreferencesService.FIRST_TIME_FLAG: SharedPreferencesDataType.bool,
   };
 
@@ -63,6 +65,14 @@ class SharedPreferencesService {
 
   static Future<String> get selectedThemeName async {
     return await _getValue(SharedPreferencesService.SELECTED_THEME_NAME);
+  }
+
+  static Future<void> setSecretModeFlag(bool selectedThemeName) async {
+    await _setValue(SECRET_MODE_FLAG, selectedThemeName);
+  }
+
+  static Future<bool?> get secretModeFlag async {
+    return await _getValue(SharedPreferencesService.SECRET_MODE_FLAG);
   }
 
   static Future<void> setFirstTimeFlag(bool firstTimeFlag) async {

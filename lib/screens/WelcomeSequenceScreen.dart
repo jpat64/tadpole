@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moonbase/screens/CalendarScreen.dart';
 import 'package:moonbase/screens/PasswordEntryScreen.dart';
+import 'package:moonbase/services/SharedPreferencesService.dart';
 import 'package:moonbase/utils/DateTimeUtils.dart';
 import 'package:moonbase/utils/Palette.dart';
 
@@ -208,8 +209,13 @@ class _WelcomeSequenceScreenState extends State<WelcomeSequenceScreen> {
                         backgroundColor: Palette.basic.accent,
                         foregroundColor: Palette.basic.background,
                       ),
-                      onPressed: () => context.goNamed(PasswordEntryScreen.name,
-                          pathParameters: {"unlock": "secret"}),
+                      onPressed: () async {
+                        await SharedPreferencesService.setFirstTimeFlag(false);
+                        if (context.mounted) {
+                          context.goNamed(PasswordEntryScreen.name,
+                              pathParameters: {"unlock": "secret"});
+                        }
+                      },
                       child: const Text("Unlock Secret Mode"),
                     ),
                   ),
@@ -221,11 +227,15 @@ class _WelcomeSequenceScreenState extends State<WelcomeSequenceScreen> {
                         backgroundColor: Palette.basic.primary,
                         foregroundColor: Palette.basic.background,
                       ),
-                      onPressed: () =>
+                      onPressed: () async {
+                        await SharedPreferencesService.setFirstTimeFlag(false);
+                        if (context.mounted) {
                           context.goNamed(CalendarScreen.name, pathParameters: {
-                        "epochDate":
-                            "${DateTimeUtils.epochDays(DateUtils.addDaysToDate(DateTime.now(), 0))}"
-                      }),
+                            "epochDate":
+                                "${DateTimeUtils.epochDays(DateUtils.addDaysToDate(DateTime.now(), 0))}"
+                          });
+                        }
+                      },
                       child: const Text("Normal Mode"),
                     ),
                   ),

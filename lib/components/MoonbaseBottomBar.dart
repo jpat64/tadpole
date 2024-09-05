@@ -45,6 +45,7 @@ class MoonbaseBottomBar extends StatelessWidget {
     return NavigationBar(
         destinations: navBarItems.values.toList(),
         selectedIndex: selectedIndex,
+        surfaceTintColor: palette.background,
         indicatorColor: palette.splash,
         onDestinationSelected: (value) {
           String path = navBarItems.keys.toList()[value];

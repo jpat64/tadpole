@@ -113,8 +113,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               IconButton(
-                  icon:
-                      Icon(Icons.arrow_back_ios_rounded, color: palette?.text),
+                  icon: Icon(Icons.arrow_back_ios_rounded,
+                      color: palette?.text ?? Palette.basic.text),
                   onPressed: () {
                     if (relevantDateTime != null) {
                       DateTime lastMonth =
@@ -131,7 +131,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               const Spacer(),
               IconButton(
                   icon: Icon(Icons.arrow_forward_ios_rounded,
-                      color: palette?.text),
+                      color: palette?.text ?? Palette.basic.text),
                   onPressed: () {
                     if (relevantDateTime != null) {
                       DateTime nextMonth =

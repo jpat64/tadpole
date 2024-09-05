@@ -8,9 +8,13 @@ import 'package:flutter_email_sender/flutter_email_sender.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moonbase/components/MoonbaseBottomBar.dart';
 import 'package:moonbase/components/MoonbaseDateTimeSelector.dart';
+import 'package:moonbase/models/StyleTheme.dart';
+import 'package:moonbase/screens/PasswordEntryScreen.dart';
+import 'package:moonbase/screens/WelcomeSequenceScreen.dart';
 import 'package:moonbase/services/DataIOService.dart';
 import 'package:moonbase/services/DatabaseService.dart';
 import 'package:moonbase/services/Logger.dart';
+import 'package:moonbase/services/SharedPreferencesService.dart';
 import 'package:moonbase/utils/DateTimeUtils.dart';
 import 'package:moonbase/utils/Palette.dart';
 
@@ -32,21 +36,50 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final GlobalKey<FormState> _importFormKey = GlobalKey<FormState>();
 
   Palette? palette;
+  bool? secretMode;
+  late bool secretModeUnlocked;
+
+  bool loaded = false;
 
   @override
   void initState() {
     super.initState();
+    secretModeUnlocked = false;
     relevantDateTime =
         DateTime.now(); // used for starting values for date time picker
+  }
+
+  Future<void> wasSecretModeUnlocked() async {
+    DatabaseService instance = DatabaseService.instance();
+    StyleTheme? secretTheme = instance.getTheme('secret');
+    setState(() {
+      if (secretTheme != null) {
+        secretModeUnlocked = secretTheme.unlocked;
+      } else {
+        secretModeUnlocked = false;
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     SchedulerBinding.instance.addPostFrameCallback((timestamp) async {
-      if (palette == null) {
-        Palette foundPalette = await Palette.currentPalette;
+      if (!loaded) {
+        if (palette == null) {
+          Palette foundPalette = await Palette.currentPalette;
+          setState(() {
+            palette = foundPalette;
+          });
+        }
+        if (secretMode == null) {
+          bool? foundSecretMode = await SharedPreferencesService.secretModeFlag;
+          setState(() {
+            secretMode = foundSecretMode;
+          });
+        }
+        await wasSecretModeUnlocked();
         setState(() {
-          palette = foundPalette;
+          loaded = true;
         });
       }
     });
@@ -72,6 +105,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Column(
               children: [
                 const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text("Navigation", style: TextStyle(fontSize: 22))),
+                const SizedBox(height: 12),
+                const Align(
                   alignment: Alignment.centerLeft,
                   child: Text("Go to Month:"),
                 ),
@@ -92,6 +129,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   constraints: constraints,
                 ),
                 Divider(color: palette?.primary),
+                const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text("Import and Export Data",
+                        style: TextStyle(fontSize: 22))),
+                const SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -298,6 +340,52 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       child: const Text("Delete Data"),
                     ),
                   ],
+                ),
+                Divider(color: palette?.primary),
+                const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text("Themes", style: TextStyle(fontSize: 22))),
+                if (secretModeUnlocked)
+                  ListTile(
+                    title: const Text(
+                      "Secret Mode",
+                      style: TextStyle(fontSize: 18),
+                    ),
+                    trailing: Switch(
+                      inactiveThumbColor:
+                          palette?.disabled ?? Palette.basic.disabled,
+                      inactiveTrackColor: palette?.off ?? Palette.basic.off,
+                      value: secretMode ?? false,
+                      onChanged: (value) {
+                        setState(() {
+                          secretMode = value;
+                        });
+                        SharedPreferencesService.setSecretModeFlag(value);
+                      },
+                    ),
+                  ),
+                if (!secretModeUnlocked)
+                  SizedBox(
+                    width: constraints.biggest.width * 0.9,
+                    child: TextButton(
+                      style: TextButton.styleFrom(
+                          backgroundColor: palette?.primary,
+                          foregroundColor: palette?.background),
+                      onPressed: () => context.goNamed(PasswordEntryScreen.name,
+                          pathParameters: {"unlock": "secret"}),
+                      child: const Text("Unlock Secret Mode"),
+                    ),
+                  ),
+                SizedBox(
+                  width: constraints.biggest.width * 0.9,
+                  child: TextButton(
+                    style: TextButton.styleFrom(
+                        backgroundColor: palette?.primary,
+                        foregroundColor: palette?.background),
+                    onPressed: () =>
+                        context.goNamed(WelcomeSequenceScreen.name),
+                    child: const Text("See Intro Again"),
+                  ),
                 ),
               ],
             ),
