@@ -77,7 +77,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: element.map<Widget>((subelement) {
                   return SizedBox(
-                    height: constraints.biggest.height * 0.1,
+                    height: constraints.biggest.height * 0.125,
                     width: constraints.biggest.width * 0.125,
                     child: (subelement.first != "--")
                         ? MoonbaseDayButton(
@@ -148,6 +148,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       ),
       body: LayoutBuilder(
         builder: (context, constraints) => Container(
+          color: palette?.background ?? Palette.basic.background,
           padding: const EdgeInsets.all(16),
           child: relevantDateTime != null
               ? getCalendar(

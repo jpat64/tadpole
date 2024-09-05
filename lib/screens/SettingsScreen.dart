@@ -65,6 +65,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
         ),
+        backgroundColor: palette?.background ?? Palette.basic.background,
         body: LayoutBuilder(
           builder: (context, constraints) => Container(
             padding: const EdgeInsets.all(16),

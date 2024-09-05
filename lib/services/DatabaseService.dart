@@ -4,6 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:moonbase/models/DailyEntry.dart';
 import 'package:moonbase/models/DailyEntryTag.dart';
 import 'package:moonbase/models/ExternalDailyEntryData.dart';
+import 'package:moonbase/models/StyleTheme.dart';
 import 'package:moonbase/services/Logger.dart';
 
 class DatabaseService {
@@ -13,8 +14,10 @@ class DatabaseService {
 
   static const String MOONBASE_DAILY_ENTRIES = "moonbase_daily_entries";
   static const String MOONBASE_DAILY_ENTRY_TAGS = "moonbase_daily_entry_tags";
+  static const String MOONBASE_STYLETHEMES = "moonbase_stylethemes";
   late final Box<DailyEntry> _dailyEntryBox;
   late final Box<DailyEntryTag> _dailyEntryTagBox;
+  late final Box<StyleTheme> _styleThemeBox;
 
   Future<void> openBoxes() async {
     /*                          :::: DEBUG ONLY ::::
@@ -27,6 +30,7 @@ class DatabaseService {
 
     _dailyEntryBox = await Hive.openBox(MOONBASE_DAILY_ENTRIES);
     _dailyEntryTagBox = await Hive.openBox(MOONBASE_DAILY_ENTRY_TAGS);
+    _styleThemeBox = await Hive.openBox(MOONBASE_STYLETHEMES);
   }
 
   static Future<void> initialize() async {
@@ -35,13 +39,15 @@ class DatabaseService {
 
       Hive.registerAdapter(DailyEntryAdapter());
       Hive.registerAdapter(DailyEntryTagAdapter());
+      Hive.registerAdapter(StyleThemeAdapter());
 
       DatabaseService instance = DatabaseService.instance();
 
       await instance.openBoxes();
       Logger.info(
           "Hive Instance Started. Number of Daily Entries: ${instance._dailyEntryBox.values.length}\n"
-          "Number of DailyEntry Tags: ${instance._dailyEntryTagBox.values.length}");
+          "Number of DailyEntry Tags: ${instance._dailyEntryTagBox.values.length}\n"
+          "Number of StyleThemes: ${instance._styleThemeBox.values.length}");
     } catch (e) {
       Logger.warning(e.toString());
     }
@@ -50,6 +56,7 @@ class DatabaseService {
   Future<bool> deleteDataFromBoxes() async {
     await _dailyEntryBox.clear();
     await _dailyEntryTagBox.clear();
+    await _styleThemeBox.clear();
     return true;
   }
 
@@ -192,5 +199,67 @@ class DatabaseService {
       Logger.warning("addTags() exception: $e");
       return false;
     }
+  }
+
+  //////// STYLE THEMES
+
+  StyleTheme? getTheme(String name) {
+    return _styleThemeBox.values
+        .where((element) =>
+            element.paletteName.toLowerCase() == name.toLowerCase())
+        .firstOrNull;
+  }
+
+  bool isUnlocked(String name) {
+    return (_styleThemeBox.values
+                .where((element) =>
+                    element.paletteName.toLowerCase() == name.toLowerCase())
+                .firstOrNull ??
+            StyleTheme(paletteName: "unknown", unlocked: false))
+        .unlocked;
+  }
+
+  Future<bool> addTheme(StyleTheme theme) async {
+    try {
+      Logger.info("addTheme() adding theme $theme");
+      String styleThemeId = StyleTheme.generateId(theme.paletteName);
+      if (_styleThemeBox.get(styleThemeId) == null) {
+        await _styleThemeBox.put(styleThemeId, theme);
+        return true;
+      } else {
+        Logger.warning(
+            "addTheme() StyleTheme with this name already exists: ${theme.paletteName}");
+      }
+    } catch (e) {
+      Logger.warning("addTheme() error with theme $theme");
+    }
+    return false;
+  }
+
+  Future<bool> _setThemeLock(String name, bool unlocked) async {
+    try {
+      Logger.info("_setThemeLock() attempt: set $name => $unlocked");
+      String styleThemeId = StyleTheme.generateId(name);
+      if (_styleThemeBox.get(styleThemeId) != null) {
+        await _styleThemeBox.put(
+            styleThemeId, StyleTheme(paletteName: name, unlocked: unlocked));
+        return true;
+      } else {
+        Logger.warning(
+            "_setThemeLock() could not find theme with this name: $name");
+      }
+    } catch (e) {
+      Logger.warning(
+          "_setThemeLock() error with name: $name and unlocked: $unlocked");
+    }
+    return false;
+  }
+
+  Future<bool> unlockTheme(String name) {
+    return _setThemeLock(name, true);
+  }
+
+  Future<bool> lockTheme(String name) {
+    return _setThemeLock(name, false);
   }
 }

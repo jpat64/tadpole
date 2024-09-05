@@ -163,6 +163,7 @@ class _EntryScreenState extends State<EntryScreen> {
             ),
           ),
         ),
+        backgroundColor: palette?.background ?? Palette.basic.background,
         body: Container(
             padding: const EdgeInsets.all(16),
             child: loaded
