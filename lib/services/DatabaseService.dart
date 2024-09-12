@@ -27,37 +27,51 @@ class DatabaseService {
      *
      *   I messed with the models so this needs to get run- resets all the info. :(
      * 
-     *   only uncomment the below line if you want to reset all the local info.
+     *   only uncomment the below lines if you want to reset all the local info.
      */
     // await Hive.deleteBoxFromDisk(MOONBASE_DAILY_ENTRIES);
     // await Hive.deleteBoxFromDisk(MOONBASE_DAILY_ENTRY_TAGS);
-    // await Hive.deleteBoxFromDisk(MOONBASE_ENTRY_GROUPS);
+    await Hive.deleteBoxFromDisk(MOONBASE_ENTRY_GROUPS);
 
-    _dailyEntryBox = await Hive.openBox(MOONBASE_DAILY_ENTRIES);
-    _dailyEntryTagBox = await Hive.openBox(MOONBASE_DAILY_ENTRY_TAGS);
-    _styleThemeBox = await Hive.openBox(MOONBASE_STYLETHEMES);
-    _entryGroupBox = await Hive.openBox(MOONBASE_ENTRY_GROUPS);
+    _dailyEntryBox = await Hive.openBox<DailyEntry>(MOONBASE_DAILY_ENTRIES);
+    _dailyEntryTagBox =
+        await Hive.openBox<DailyEntryTag>(MOONBASE_DAILY_ENTRY_TAGS);
+    _styleThemeBox = await Hive.openBox<StyleTheme>(MOONBASE_STYLETHEMES);
+    _entryGroupBox = await Hive.openBox<EntryGroup>(MOONBASE_ENTRY_GROUPS);
   }
 
   static Future<void> initialize() async {
     try {
       await Hive.initFlutter();
 
+      Logger.info("Initializing... started Hive!");
+
       Hive.registerAdapter(DailyEntryAdapter());
       Hive.registerAdapter(DailyEntryTagAdapter());
       Hive.registerAdapter(StyleThemeAdapter());
       Hive.registerAdapter(EntryGroupAdapter());
 
-      DatabaseService instance = DatabaseService.instance;
+      Logger.info("Initializing... adapters registered!");
 
-      await instance.openBoxes();
+      try {
+        await DatabaseService.instance.openBoxes();
+      } catch (e) {
+        Logger.warning(
+            "DatabaseService.instance.openBoxes() error opening boxes - $e");
+        rethrow;
+      }
+      Logger.info("Initializing... boxes opened! Box information:");
+
       Logger.info(
-          "Hive Instance Started. Number of Daily Entries: ${instance._dailyEntryBox.values.length}\n"
-          "Number of DailyEntry Tags: ${instance._dailyEntryTagBox.values.length}\n"
-          "Number of StyleThemes: ${instance._styleThemeBox.values.length}\n"
+          "Number of Daily Entries: ${instance._dailyEntryBox.values.length}");
+      Logger.info(
+          "Number of DailyEntry Tags: ${instance._dailyEntryTagBox.values.length}");
+      Logger.info(
+          "Number of StyleThemes: ${instance._styleThemeBox.values.length}");
+      Logger.info(
           "Number of EntryGroups: ${instance._entryGroupBox.values.length}");
     } catch (e) {
-      Logger.warning(e.toString());
+      Logger.warning("DatabaseService.initialize() error ${e.toString()}");
     }
   }
 
@@ -316,6 +330,28 @@ class DatabaseService {
       return true;
     } catch (e) {
       Logger.warning("updateEntryGroup exception - $e");
+      return false;
+    }
+  }
+
+  Future<bool> deleteEntryGroup(EntryGroup group) async {
+    EntryGroup? destinationEntryGroup =
+        findPreviousEntryGroup(group.lowestEpochDate);
+    destinationEntryGroup ??= findNextEntryGroup(group.highestEpochDate);
+    destinationEntryGroup ??= mostRecentEntryGroup;
+    if (group.id == destinationEntryGroup.id) {
+      destinationEntryGroup =
+          EntryGroup(entries: [], name: EntryGroup.defaultId);
+    }
+
+    destinationEntryGroup.entries.addAll(group.entries);
+    try {
+      await _entryGroupBox.put(EntryGroup.generateId(destinationEntryGroup.id),
+          destinationEntryGroup);
+      await _entryGroupBox.delete(EntryGroup.generateId(group.id));
+      return true;
+    } catch (e) {
+      Logger.warning("deleteEntryGroup() exception - $e");
       return false;
     }
   }

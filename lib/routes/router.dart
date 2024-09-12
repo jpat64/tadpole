@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:moonbase/screens/CalendarScreen.dart';
 import 'package:moonbase/screens/EntryScreen.dart';
+import 'package:moonbase/screens/GroupScreen.dart';
 import 'package:moonbase/screens/InitializationScreen.dart';
 import 'package:moonbase/screens/PasswordEntryScreen.dart';
 import 'package:moonbase/screens/SettingsScreen.dart';
@@ -39,6 +40,12 @@ final GoRouter router = GoRouter(
       name: PasswordEntryScreen.name,
       builder: (context, state) =>
           PasswordEntryScreen(unlock: state.pathParameters['unlock']!),
+    ),
+    GoRoute(
+      path: "${GroupScreen.name}/:groupId",
+      name: GroupScreen.name,
+      builder: (context, state) =>
+          GroupScreen(groupId: int.parse(state.pathParameters['groupId']!)),
     ),
   ],
 );

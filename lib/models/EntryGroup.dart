@@ -14,7 +14,7 @@ class EntryGroup {
   @HiveField(1, defaultValue: <DailyEntry>[])
   List<DailyEntry> entries;
 
-  @HiveField(2)
+  @HiveField(2, defaultValue: -1)
   late int id;
 
   EntryGroup({required this.name, required this.entries}) {

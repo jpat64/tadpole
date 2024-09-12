@@ -94,7 +94,14 @@ class _EntryScreenState extends State<EntryScreen> {
         tags = relevantEntry.tags ?? <DailyEntryTag>[];
         notes = relevantEntry.notes ?? "";
         notesTextController.text = notes;
-        createNewGroup = instance.findGroupWithEntry(relevantEntry) == null;
+        createNewGroup = (instance.findGroupWithEntry(relevantEntry)?.entries
+                  ?..sort(
+                    (element, other) =>
+                        element.epochDate.compareTo(other.epochDate),
+                  ))
+                ?.first
+                .epochDate ==
+            relevantEntry.epochDate;
       }
     });
   }
@@ -173,7 +180,7 @@ class _EntryScreenState extends State<EntryScreen> {
                       palette: palette ?? Palette.basic,
                       editingMode: editingMode,
                       initialSecured: secured,
-                      initialNewEntryGroup: false,
+                      initialNewEntryGroup: createNewGroup ?? false,
                       initialCurrent: current,
                       initialPoints: points,
                       initialPallor: pallor,
@@ -188,6 +195,7 @@ class _EntryScreenState extends State<EntryScreen> {
                       newEntryGroupOnChangedCallback: (value) {
                         setState(() {
                           didAnythingChange = true;
+                          createNewGroup = value ?? false;
                         });
                       },
                       currentOnChangedCallback: (value) {

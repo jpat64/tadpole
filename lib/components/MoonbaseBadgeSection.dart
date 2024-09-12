@@ -3,10 +3,9 @@ import 'package:flutter/material.dart';
 
 class MoonbaseBadgeSection extends StatelessWidget {
   final List<Color>? badgeColors;
+  final List<double>? sizes;
 
-  const MoonbaseBadgeSection({super.key, this.badgeColors});
-
-  static const List<double> sizes = [0, 7, 7, 7];
+  const MoonbaseBadgeSection({super.key, this.badgeColors, this.sizes});
 
   List<Row> getBadgeRows(
       List<Color> badgeColors, List<Row>? toReturn, double size) {
@@ -26,8 +25,9 @@ class MoonbaseBadgeSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double size = sizes[1];
-    size = sizes[badgeColors!.length];
+    List<double> finalSizes = sizes ?? [0, 7, 7, 7];
+    double size = finalSizes[1];
+    size = finalSizes[badgeColors!.length];
 
     return Column(children: getBadgeRows(badgeColors ?? [], null, size));
   }

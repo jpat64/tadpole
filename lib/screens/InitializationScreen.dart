@@ -2,6 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:moonbase/models/DailyEntry.dart';
+import 'package:moonbase/models/EntryGroup.dart';
 import 'package:moonbase/models/StyleTheme.dart';
 import 'package:moonbase/screens/CalendarScreen.dart';
 import 'package:moonbase/screens/WelcomeSequenceScreen.dart';
@@ -36,6 +38,11 @@ class _InitializationScreenState extends State<InitializationScreen> {
           .addTheme(StyleTheme(paletteName: 'secret', unlocked: false));
     }
 
+    bool success = await setupEntryGroups();
+    if (!success) {
+      Logger.warning("unable to set up Entry Groups");
+    }
+
     late bool firstTime;
     try {
       firstTime = await SharedPreferencesService.firstTimeFlag;
@@ -58,6 +65,27 @@ class _InitializationScreenState extends State<InitializationScreen> {
     } else {
       return CalendarScreen.name;
     }
+  }
+
+  Future<bool> setupEntryGroups() async {
+    DatabaseService instance = DatabaseService.instance;
+    if (instance.entryGroups.isEmpty) {
+      DatabaseService.instance
+          .createEntryGroup(EntryGroup.defaultId, <DailyEntry>[]);
+      Logger.info("No EntryGroups existed, created a new EntryGroup");
+    }
+    EntryGroup defaultEntryGroup = instance.mostRecentEntryGroup;
+    for (DailyEntry entry in instance.dailyEntries) {
+      if (entry.entryGroupId == EntryGroup.defaultId &&
+          (defaultEntryGroup.entries
+                  .map<int>((element) => element.epochDate)
+                  .contains(entry.epochDate) ==
+              false)) {
+        defaultEntryGroup.entries.add(entry);
+      }
+    }
+    bool success = await instance.updateEntryGroup(defaultEntryGroup);
+    return success;
   }
 
   @override
