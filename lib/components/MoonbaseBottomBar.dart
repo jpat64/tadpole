@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moonbase/screens/CalendarScreen.dart';
 import 'package:moonbase/screens/EntryScreen.dart';
+import 'package:moonbase/screens/GroupScreen.dart';
 import 'package:moonbase/screens/SettingsScreen.dart';
 import 'package:moonbase/utils/Palette.dart';
 
@@ -23,6 +24,10 @@ class MoonbaseBottomBar extends StatelessWidget {
       icon: Icon(Icons.calendar_today),
       label: "Today",
     ),
+    GroupScreen.name: NavigationDestination(
+      icon: Icon(Icons.loop),
+      label: "Groups",
+    ),
     SettingsScreen.name: NavigationDestination(
       icon: Icon(Icons.settings),
       label: "Settings",
@@ -35,6 +40,8 @@ class MoonbaseBottomBar extends StatelessWidget {
         return {"epochDate": "${CalendarScreen.defaultEpochDate}"};
       case EntryScreen.name:
         return {"epochDate": "${EntryScreen.defaultEpochDate}"};
+      case GroupScreen.name:
+        return {"groupId": "${GroupScreen.defaultGroupId}"};
       default:
         return const <String, String>{};
     }

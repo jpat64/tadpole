@@ -25,7 +25,7 @@ class SettingsScreen extends StatefulWidget {
   State<StatefulWidget> createState() => _SettingsScreenState();
 
   static const String name = "/settings";
-  static const int navIndex = 2;
+  static const int navIndex = 3;
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
@@ -50,7 +50,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> wasSecretModeUnlocked() async {
-    DatabaseService instance = DatabaseService.instance();
+    DatabaseService instance = DatabaseService.instance;
     StyleTheme? secretTheme = instance.getTheme('secret');
     setState(() {
       if (secretTheme != null) {
@@ -324,7 +324,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     foregroundColor: palette?.text),
                                 onPressed: () async {
                                   DatabaseService instance =
-                                      DatabaseService.instance();
+                                      DatabaseService.instance;
                                   bool success =
                                       await instance.deleteDataFromBoxes();
                                   if (false == success) {

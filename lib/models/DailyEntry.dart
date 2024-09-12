@@ -1,6 +1,7 @@
 // ignore_for_file: file_names
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:moonbase/models/DailyEntryTag.dart';
+import 'package:moonbase/models/EntryGroup.dart';
 
 part 'DailyEntry.g.dart';
 
@@ -27,6 +28,9 @@ class DailyEntry {
   @HiveField(6)
   bool? secured;
 
+  @HiveField(7, defaultValue: EntryGroup.defaultId)
+  String entryGroupId;
+
   DailyEntry({
     this.notes,
     required this.epochDate,
@@ -35,6 +39,7 @@ class DailyEntry {
     required this.pallor,
     this.tags,
     this.secured,
+    required this.entryGroupId,
   });
 
   String get id => "E$epochDate";
@@ -55,10 +60,11 @@ class DailyEntry {
                 ?.map<Map<String, dynamic>>((element) => element.toJson())
                 .toList() ??
             [],
+        "entryGroup": entryGroupId,
       };
 
   @override
   String toString() {
-    return "DailyEntry: epochDate:$epochDate current:$current points:$points pallor:$pallor tags:$tags notes:$notes secured:$secured";
+    return "DailyEntry: epochDate:$epochDate current:$current points:$points pallor:$pallor tags:$tags notes:$notes secured:$secured entryGroup:$entryGroupId";
   }
 }

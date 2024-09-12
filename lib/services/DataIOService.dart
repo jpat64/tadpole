@@ -10,7 +10,7 @@ import 'package:path_provider/path_provider.dart';
 
 class DataIOService {
   static Future<String> exportDataAsString() async {
-    DatabaseService instance = DatabaseService.instance();
+    DatabaseService instance = DatabaseService.instance;
 
     List<String> entriesAsCsvs = instance.getLinesForExport();
     return "Date,Medication,Current,Points,Pallor,Notes,Tags\n${entriesAsCsvs.join("\n")}";
@@ -44,7 +44,7 @@ class DataIOService {
             (element) => ExternalDailyEntryData.fromCsv(csvString: element))
         .toList();
 
-    DatabaseService instance = DatabaseService.instance();
+    DatabaseService instance = DatabaseService.instance;
     bool success = true;
 
     for (ExternalDailyEntryData extEntry in externalEntryData) {

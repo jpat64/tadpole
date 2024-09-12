@@ -24,13 +24,14 @@ class DailyEntryAdapter extends TypeAdapter<DailyEntry> {
       pallor: fields[4] as int,
       tags: (fields[5] as List?)?.cast<DailyEntryTag>(),
       secured: fields[6] as bool?,
+      entryGroupId: fields[7] == null ? 'EG-0001' : fields[7] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, DailyEntry obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.notes)
       ..writeByte(1)
@@ -44,7 +45,9 @@ class DailyEntryAdapter extends TypeAdapter<DailyEntry> {
       ..writeByte(5)
       ..write(obj.tags)
       ..writeByte(6)
-      ..write(obj.secured);
+      ..write(obj.secured)
+      ..writeByte(7)
+      ..write(obj.entryGroupId);
   }
 
   @override

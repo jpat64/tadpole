@@ -26,13 +26,13 @@ class _InitializationScreenState extends State<InitializationScreen> {
     await DatabaseService.initialize();
 
     // only needs to run once
-    DatabaseService instance = DatabaseService.instance();
+    DatabaseService instance = DatabaseService.instance;
     if (instance.getTheme('basic') == null) {
-      DatabaseService.instance()
+      DatabaseService.instance
           .addTheme(StyleTheme(paletteName: 'basic', unlocked: true));
     }
     if (instance.getTheme('secret') == null) {
-      DatabaseService.instance()
+      DatabaseService.instance
           .addTheme(StyleTheme(paletteName: 'secret', unlocked: false));
     }
 

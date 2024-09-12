@@ -10,12 +10,14 @@ class MoonbaseEntryCard extends StatelessWidget {
   final Palette palette;
   final bool editingMode;
   final bool initialSecured;
+  final bool initialNewEntryGroup;
   final int initialCurrent;
   final int initialPoints;
   final int initialPallor;
   final List<DailyEntryTag> initialTags;
   final TextEditingController textEditingController;
   final void Function(bool?) securedOnChangedCallback;
+  final void Function(bool?) newEntryGroupOnChangedCallback;
   final void Function(int?) currentOnChangedCallback;
   final void Function(int?) pointsOnChangedCallback;
   final void Function(int?) pallorOnChangedCallback;
@@ -30,12 +32,14 @@ class MoonbaseEntryCard extends StatelessWidget {
     required this.palette,
     required this.editingMode,
     required this.initialSecured,
+    required this.initialNewEntryGroup,
     required this.initialCurrent,
     required this.initialPoints,
     required this.initialPallor,
     required this.initialTags,
     required this.textEditingController,
     required this.securedOnChangedCallback,
+    required this.newEntryGroupOnChangedCallback,
     required this.currentOnChangedCallback,
     required this.pointsOnChangedCallback,
     required this.pallorOnChangedCallback,
@@ -70,6 +74,29 @@ class MoonbaseEntryCard extends StatelessWidget {
                       onPressedCallback: () {
                         if (editingMode) {
                           securedOnChangedCallback(!initialSecured);
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              Divider(color: palette.primary),
+              Container(
+                padding: const EdgeInsets.only(top: 8, bottom: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(secretMode ? "Start new Cycle?" : "Create new Group?",
+                        style: TextStyle(fontSize: 18, color: palette.text)),
+                    MoonbaseStatusButton(
+                      activeColor: palette.accent,
+                      zeroColor: palette.disabled,
+                      currentLevel: initialNewEntryGroup ? 4 : 0,
+                      targetLevel: 4,
+                      inactiveColor: palette.disabled,
+                      onPressedCallback: () {
+                        if (editingMode) {
+                          newEntryGroupOnChangedCallback(!initialNewEntryGroup);
                         }
                       },
                     ),

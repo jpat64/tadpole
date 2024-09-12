@@ -3,6 +3,7 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:moonbase/models/DailyEntry.dart';
 import 'package:moonbase/models/DailyEntryTag.dart';
+import 'package:moonbase/models/EntryGroup.dart';
 import 'package:moonbase/models/ExternalDailyEntryData.dart';
 import 'package:moonbase/models/StyleTheme.dart';
 import 'package:moonbase/services/Logger.dart';
@@ -10,14 +11,16 @@ import 'package:moonbase/services/Logger.dart';
 class DatabaseService {
   static final DatabaseService _instance = DatabaseService();
 
-  static DatabaseService instance() => _instance;
+  static DatabaseService get instance => _instance;
 
   static const String MOONBASE_DAILY_ENTRIES = "moonbase_daily_entries";
   static const String MOONBASE_DAILY_ENTRY_TAGS = "moonbase_daily_entry_tags";
   static const String MOONBASE_STYLETHEMES = "moonbase_stylethemes";
+  static const String MOONBASE_ENTRY_GROUPS = "moonbase_entry_groups";
   late final Box<DailyEntry> _dailyEntryBox;
   late final Box<DailyEntryTag> _dailyEntryTagBox;
   late final Box<StyleTheme> _styleThemeBox;
+  late final Box<EntryGroup> _entryGroupBox;
 
   Future<void> openBoxes() async {
     /*                          :::: DEBUG ONLY ::::
@@ -27,10 +30,13 @@ class DatabaseService {
      *   only uncomment the below line if you want to reset all the local info.
      */
     // await Hive.deleteBoxFromDisk(MOONBASE_DAILY_ENTRIES);
+    // await Hive.deleteBoxFromDisk(MOONBASE_DAILY_ENTRY_TAGS);
+    // await Hive.deleteBoxFromDisk(MOONBASE_ENTRY_GROUPS);
 
     _dailyEntryBox = await Hive.openBox(MOONBASE_DAILY_ENTRIES);
     _dailyEntryTagBox = await Hive.openBox(MOONBASE_DAILY_ENTRY_TAGS);
     _styleThemeBox = await Hive.openBox(MOONBASE_STYLETHEMES);
+    _entryGroupBox = await Hive.openBox(MOONBASE_ENTRY_GROUPS);
   }
 
   static Future<void> initialize() async {
@@ -40,14 +46,16 @@ class DatabaseService {
       Hive.registerAdapter(DailyEntryAdapter());
       Hive.registerAdapter(DailyEntryTagAdapter());
       Hive.registerAdapter(StyleThemeAdapter());
+      Hive.registerAdapter(EntryGroupAdapter());
 
-      DatabaseService instance = DatabaseService.instance();
+      DatabaseService instance = DatabaseService.instance;
 
       await instance.openBoxes();
       Logger.info(
           "Hive Instance Started. Number of Daily Entries: ${instance._dailyEntryBox.values.length}\n"
           "Number of DailyEntry Tags: ${instance._dailyEntryTagBox.values.length}\n"
-          "Number of StyleThemes: ${instance._styleThemeBox.values.length}");
+          "Number of StyleThemes: ${instance._styleThemeBox.values.length}\n"
+          "Number of EntryGroups: ${instance._entryGroupBox.values.length}");
     } catch (e) {
       Logger.warning(e.toString());
     }
@@ -57,6 +65,7 @@ class DatabaseService {
     await _dailyEntryBox.clear();
     await _dailyEntryTagBox.clear();
     await _styleThemeBox.clear();
+    await _entryGroupBox.clear();
     return true;
   }
 
@@ -105,6 +114,7 @@ class DatabaseService {
       notes: extEntry.notes == "--" ? null : extEntry.notes,
       tags: extEntryTags?.map((element) => searchTags(element)[0]).toList(),
       secured: extEntry.secured,
+      entryGroupId: extEntry.entryGroupId,
     );
     Logger.info("external data processing: adding daily entry $entry");
     success = await addDailyEntry(entry);
@@ -113,13 +123,13 @@ class DatabaseService {
 
   ///////// DAILY ENTRIES
 
-  bool existsEntryForDay(int epochDate) {
-    return _dailyEntryBox.get(DailyEntry.generateId(epochDate)) != null;
-  }
+  bool existsEntryForDay(int epochDate) =>
+      _dailyEntryBox.get(DailyEntry.generateId(epochDate)) != null;
 
-  DailyEntry? getDailyEntry(int epochDate) {
-    return _dailyEntryBox.get(DailyEntry.generateId(epochDate));
-  }
+  DailyEntry? getDailyEntry(int epochDate) =>
+      _dailyEntryBox.get(DailyEntry.generateId(epochDate));
+
+  Iterable<DailyEntry> get dailyEntries => _dailyEntryBox.values;
 
   Future<bool> addDailyEntry(DailyEntry entry) async {
     try {
@@ -160,10 +170,10 @@ class DatabaseService {
     return startsWith + contains;
   }
 
-  List<DailyEntryTag> searchTagsExact(String searchTerm) {
-    List<DailyEntryTag> tags = _dailyEntryTagBox.values.toList();
-    return tags.where((element) => element.text == searchTerm).toList();
-  }
+  List<DailyEntryTag> searchTagsExact(String searchTerm) =>
+      _dailyEntryTagBox.values
+          .where((element) => element.text == searchTerm)
+          .toList();
 
   Future<int> trimTags() async {
     int tagsTrimmed = 0;
@@ -203,21 +213,17 @@ class DatabaseService {
 
   //////// STYLE THEMES
 
-  StyleTheme? getTheme(String name) {
-    return _styleThemeBox.values
-        .where((element) =>
-            element.paletteName.toLowerCase() == name.toLowerCase())
-        .firstOrNull;
-  }
+  StyleTheme? getTheme(String name) => _styleThemeBox.values
+      .where(
+          (element) => element.paletteName.toLowerCase() == name.toLowerCase())
+      .firstOrNull;
 
-  bool isUnlocked(String name) {
-    return (_styleThemeBox.values
-                .where((element) =>
-                    element.paletteName.toLowerCase() == name.toLowerCase())
-                .firstOrNull ??
-            StyleTheme(paletteName: "unknown", unlocked: false))
-        .unlocked;
-  }
+  bool isUnlocked(String name) => (_styleThemeBox.values
+              .where((element) =>
+                  element.paletteName.toLowerCase() == name.toLowerCase())
+              .firstOrNull ??
+          StyleTheme(paletteName: "unknown", unlocked: false))
+      .unlocked;
 
   Future<bool> addTheme(StyleTheme theme) async {
     try {
@@ -255,11 +261,62 @@ class DatabaseService {
     return false;
   }
 
-  Future<bool> unlockTheme(String name) {
-    return _setThemeLock(name, true);
+  Future<bool> unlockTheme(String name) async =>
+      await _setThemeLock(name, true);
+
+  Future<bool> lockTheme(String name) async => await _setThemeLock(name, false);
+
+  //////// ENTRY GROUPS
+
+  // automatically sorts by highest value of epochDate of entry contained within group
+  List<EntryGroup> get entryGroups => _entryGroupBox.values.toList()
+    ..sort((element, other) =>
+        other.highestEpochDate.compareTo(element.highestEpochDate));
+
+  EntryGroup get mostRecentEntryGroup => entryGroups.first;
+
+  EntryGroup? getEntryGroup(int id) =>
+      _entryGroupBox.get(EntryGroup.generateId(id));
+
+  EntryGroup? findGroupWithEntry(DailyEntry entry) => _entryGroupBox.values
+      .where((element) => element.entries
+          .map<int>((subelement) => subelement.epochDate)
+          .contains(entry.epochDate))
+      .firstOrNull;
+
+  EntryGroup? findPreviousEntryGroup(int lowestEpochDate) =>
+      (_entryGroupBox.values
+              .where((element) => element.highestEpochDate < lowestEpochDate)
+              .toList()
+            ..sort((EntryGroup element, EntryGroup other) =>
+                element.highestEpochDate.compareTo(other.highestEpochDate)))
+          .lastOrNull;
+
+  EntryGroup? findNextEntryGroup(int highestEpochDate) => (_entryGroupBox.values
+          .where((element) => element.lowestEpochDate > highestEpochDate)
+          .toList()
+        ..sort((EntryGroup element, EntryGroup other) =>
+            other.lowestEpochDate.compareTo(element.lowestEpochDate)))
+      .lastOrNull;
+
+  Future<bool> createEntryGroup(String name, List<DailyEntry> entries) async {
+    try {
+      EntryGroup group = EntryGroup(name: name, entries: entries);
+      await _entryGroupBox.put(EntryGroup.generateId(group.id), group);
+      return true;
+    } catch (e) {
+      Logger.warning("createEntryGroup exception - $e");
+      return false;
+    }
   }
 
-  Future<bool> lockTheme(String name) {
-    return _setThemeLock(name, false);
+  Future<bool> updateEntryGroup(EntryGroup group) async {
+    try {
+      await _entryGroupBox.put(EntryGroup.generateId(group.id), group);
+      return true;
+    } catch (e) {
+      Logger.warning("updateEntryGroup exception - $e");
+      return false;
+    }
   }
 }

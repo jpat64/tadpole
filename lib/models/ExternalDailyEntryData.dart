@@ -1,6 +1,7 @@
 // ignore_for_file: file_names
 
 import 'package:moonbase/models/DailyEntry.dart';
+import 'package:moonbase/models/EntryGroup.dart';
 import 'package:moonbase/utils/DateTimeUtils.dart';
 
 class ExternalDailyEntryData {
@@ -11,15 +12,18 @@ class ExternalDailyEntryData {
   final int pallor;
   final String notes;
   final List<String> tags;
+  final String entryGroupId;
 
-  const ExternalDailyEntryData(
-      {required this.epochDate,
-      required this.secured,
-      required this.current,
-      required this.points,
-      required this.pallor,
-      required this.notes,
-      required this.tags});
+  const ExternalDailyEntryData({
+    required this.epochDate,
+    required this.secured,
+    required this.current,
+    required this.points,
+    required this.pallor,
+    required this.notes,
+    required this.tags,
+    required this.entryGroupId,
+  });
 
   ExternalDailyEntryData.fromDailyEntry({required DailyEntry entry})
       : epochDate = entry.epochDate,
@@ -30,11 +34,12 @@ class ExternalDailyEntryData {
         notes = (entry.notes?.isNotEmpty ?? false) ? entry.notes! : "--",
         tags = (entry.tags?.isNotEmpty ?? false)
             ? entry.tags!.map<String>((element) => element.text).toList()
-            : <String>["--"];
+            : <String>["--"],
+        entryGroupId = entry.entryGroupId;
 
   /// Expected CSV format:
-  /// "<yyyy-mm-dd>,<Taken/Not Taken>,<current>,<points>,<pallor>,<notes with comma parse>,<tag texts as || separated list>"
-  /// "[0 - epochDate],[1 - secured],[2 - current],[3 - points],[4 - pallor],[5 - notes],[6 - tags]"
+  /// "<yyyy-mm-dd>,<Taken/Not Taken>,<current>,<points>,<pallor>,<notes with comma parse>,<tag texts as || separated list>,<entryGroupId>"
+  /// "[0 - epochDate],[1 - secured],[2 - current],[3 - points],[4 - pallor],[5 - notes],[6 - tags],[7 - entryGroupId]"
   ExternalDailyEntryData.fromCsv({required String csvString})
       : epochDate = DateTimeUtils.epochDaysFromString(csvString.split(",")[0]),
         secured = csvString.split(",")[1] == "Taken" ? true : false,
@@ -50,9 +55,12 @@ class ExternalDailyEntryData {
             .split("||")
             .map<String>((element) =>
                 element.replaceAll("-comma-", ',').replaceAll("\n", "-line-"))
-            .toList();
+            .toList(),
+        entryGroupId = csvString.split(",").length > 7
+            ? csvString.split(",")[7]
+            : EntryGroup.defaultId;
 
   String toCsv() {
-    return "${DateTimeUtils.stringFromEpochDays(epochDate)},${secured ? "Taken" : "Not Taken"},$current,$points,$pallor,${notes.replaceAll(",", "-comma-").replaceAll("-line-", "\n")},${tags.map<String>((element) => element.replaceAll(",", "-comma-").replaceAll("-line-", "\n")).join("||")}";
+    return "${DateTimeUtils.stringFromEpochDays(epochDate)},${secured ? "Taken" : "Not Taken"},$current,$points,$pallor,${notes.replaceAll(",", "-comma-").replaceAll("-line-", "\n")},${tags.map<String>((element) => element.replaceAll(",", "-comma-").replaceAll("-line-", "\n")).join("||")},$entryGroupId";
   }
 }

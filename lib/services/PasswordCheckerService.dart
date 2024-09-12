@@ -3,7 +3,7 @@
 import 'package:moonbase/services/DatabaseService.dart';
 
 class PasswordCheckerService {
-  DatabaseService instance = DatabaseService.instance();
+  DatabaseService instance = DatabaseService.instance;
 
   Future<bool> unlockStyleTheme(String themeName, String givenPassword) async {
     if (themeName == 'secret') {

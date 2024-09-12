@@ -18,7 +18,7 @@ class MoonbaseDayButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    DatabaseService instance = DatabaseService.instance();
+    DatabaseService instance = DatabaseService.instance;
     DailyEntry? entry;
     if (data != null && data?.last != null) {
       entry = instance.getDailyEntry(DateTimeUtils.epochDays(data!.last!));

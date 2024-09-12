@@ -16,38 +16,32 @@ import 'package:moonbase/utils/DateTimeUtils.dart';
 import 'package:intl/intl.dart';
 import 'package:moonbase/utils/Palette.dart';
 
-class EntryScreen extends StatefulWidget {
-  const EntryScreen({super.key, required this.epochDate});
+class GroupScreen extends StatefulWidget {
+  const GroupScreen({super.key, required this.groupId});
 
-  final int epochDate;
+  final int groupId;
 
   @override
-  State<StatefulWidget> createState() => _EntryScreenState();
+  State<StatefulWidget> createState() => _GroupScreenState();
 
-  static const String name = "/entry";
-  static const int navIndex = 1;
-  static int defaultEpochDate =
-      DateTimeUtils.epochDays(DateUtils.addDaysToDate(DateTime.now(), 0));
+  static const String name = "/group";
+  static const int navIndex = 2;
+  static int defaultGroupId = DatabaseService.instance.mostRecentEntryGroup.id;
 }
 
-class _EntryScreenState extends State<EntryScreen> {
+class _GroupScreenState extends State<GroupScreen> {
   DateTime? relevantDateTime;
 
   DateFormat dayMonthYear = DateFormat("MMMM d yyyy");
 
-  TextEditingController notesTextController = TextEditingController();
-  late String notes;
-  late final int epochDate;
-  late bool secured;
-  late int current;
-  late int points;
-  late int pallor;
-  late List<DailyEntryTag> tags;
+  TextEditingController nameTextController = TextEditingController();
+  late EntryGroup group;
 
   Palette? palette;
   bool? secretMode;
+  int? previousId;
+  int? nextId;
 
-  bool? createNewGroup;
   bool editingMode = false;
   bool loaded = false;
   bool didAnythingChange = false;
@@ -55,47 +49,25 @@ class _EntryScreenState extends State<EntryScreen> {
   @override
   void initState() {
     super.initState();
-
-    relevantDateTime = DateTimeUtils.dateFromEpochDays(widget.epochDate);
-    epochDate = DateTimeUtils.epochDays(relevantDateTime!);
   }
 
-  Future<void> loadSecretModeToggle() async {
-    bool foundSecretMode =
-        await SharedPreferencesService.secretModeFlag ?? false;
+  void loadEntryGroup() {
+    DatabaseService instance = DatabaseService.instance;
+    EntryGroup? relevantEntryGroup = instance.getEntryGroup(widget.groupId);
+    relevantEntryGroup ??= instance.mostRecentEntryGroup;
     setState(() {
-      secretMode = foundSecretMode;
+      group = relevantEntryGroup!;
     });
   }
 
-  void loadDailyEntry() {
+  void loadAdjacentEntryGroups() {
     DatabaseService instance = DatabaseService.instance;
-    bool isEntryActive = instance.existsEntryForDay(epochDate);
-    DailyEntry? relevantEntry;
-    if (isEntryActive) {
-      relevantEntry = instance.getDailyEntry(epochDate);
-    }
+    EntryGroup? previous =
+        instance.findPreviousEntryGroup(group.lowestEpochDate);
+    EntryGroup? next = instance.findNextEntryGroup(group.highestEpochDate);
     setState(() {
-      if (relevantEntry == null) {
-        didAnythingChange = true;
-        secured = false;
-        current = 0;
-        points = 0;
-        pallor = 0;
-        tags = <DailyEntryTag>[];
-        notes = "";
-        notesTextController.text = "";
-        createNewGroup = false;
-      } else {
-        secured = relevantEntry.secured ?? false;
-        current = relevantEntry.current;
-        points = relevantEntry.points;
-        pallor = relevantEntry.pallor;
-        tags = relevantEntry.tags ?? <DailyEntryTag>[];
-        notes = relevantEntry.notes ?? "";
-        notesTextController.text = notes;
-        createNewGroup = instance.findGroupWithEntry(relevantEntry) == null;
-      }
+      previousId = previous?.id;
+      nextId = next?.id;
     });
   }
 
@@ -106,12 +78,21 @@ class _EntryScreenState extends State<EntryScreen> {
     });
   }
 
+  Future<void> loadSecretModeToggle() async {
+    bool foundSecretMode =
+        await SharedPreferencesService.secretModeFlag ?? false;
+    setState(() {
+      secretMode = foundSecretMode;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     WidgetsBinding.instance.addPostFrameCallback((timestamp) async {
       // only run if not loaded
       if (loaded == false) {
-        loadDailyEntry();
+        loadEntryGroup();
+        loadAdjacentEntryGroups();
         await loadPalette();
         await loadSecretModeToggle();
         setState(() {
@@ -133,16 +114,12 @@ class _EntryScreenState extends State<EntryScreen> {
                 IconButton(
                     icon: Icon(Icons.arrow_back_ios_rounded,
                         color: palette?.text ?? Palette.basic.text),
-                    onPressed: () {
-                      if (relevantDateTime != null) {
-                        DateTime lastDay =
-                            DateUtils.addDaysToDate(relevantDateTime!, -1);
-
-                        context.pushNamed(EntryScreen.name, pathParameters: {
-                          "epochDate": "${DateTimeUtils.epochDays(lastDay)}"
-                        });
-                      }
-                    }),
+                    onPressed: previousId == null
+                        ? null
+                        : () {
+                            context.pushNamed(GroupScreen.name,
+                                pathParameters: {"groupId": "$previousId"});
+                          }),
                 const Spacer(),
                 Text(
                   dayMonthYear.format(relevantDateTime!),
@@ -151,15 +128,12 @@ class _EntryScreenState extends State<EntryScreen> {
                 IconButton(
                     icon: Icon(Icons.arrow_forward_ios_rounded,
                         color: palette?.text ?? Palette.basic.text),
-                    onPressed: () {
-                      if (relevantDateTime != null) {
-                        DateTime nextDay =
-                            DateUtils.addDaysToDate(relevantDateTime!, 1);
-                        context.pushNamed(EntryScreen.name, pathParameters: {
-                          "epochDate": "${DateTimeUtils.epochDays(nextDay)}"
-                        });
-                      }
-                    }),
+                    onPressed: nextId == null
+                        ? null
+                        : () {
+                            context.pushNamed(GroupScreen.name,
+                                pathParameters: {"groupId": "$nextId"});
+                          }),
               ],
             ),
           ),
@@ -340,7 +314,7 @@ class _EntryScreenState extends State<EntryScreen> {
                                       EntryGroup? groupWithThisEntry =
                                           instance.findGroupWithEntry(newEntry);
                                       groupWithThisEntry ??=
-                                          instance.mostRecentEntryGroup;
+                                          instance.getMostRecentEntryGroup();
 
                                       // remove duplicates
                                       if (groupWithThisEntry.entries

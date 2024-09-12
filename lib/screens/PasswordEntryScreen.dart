@@ -107,7 +107,7 @@ class _PasswordEntryScreenState extends State<PasswordEntryScreen> {
                                     backgroundColor: Palette.basic.accent,
                                     textColor: Palette.basic.text);
                                 DatabaseService instance =
-                                    DatabaseService.instance();
+                                    DatabaseService.instance;
                                 bool success =
                                     await instance.unlockTheme(widget.unlock);
                                 if (success) {
