@@ -6,6 +6,9 @@ class MoonbaseTheme {
   static TextButtonThemeData textButtonTheme = TextButtonThemeData(
       style: TextButton.styleFrom(textStyle: withFontSize(20)));
 
+  static OutlinedButtonThemeData outlineButtonTheme = OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(textStyle: withFontSize(20)));
+
   static TextTheme textTheme = TextTheme(
     displayLarge: textStyle,
     displayMedium: textStyle,

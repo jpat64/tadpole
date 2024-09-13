@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:moonbase/screens/CalendarScreen.dart';
 import 'package:moonbase/services/DatabaseService.dart';
 import 'package:moonbase/services/Logger.dart';
-import 'package:moonbase/services/PasswordCheckerService.dart';
 import 'package:moonbase/services/SharedPreferencesService.dart';
 import 'package:moonbase/utils/DateTimeUtils.dart';
 import 'package:moonbase/utils/Palette.dart';
@@ -39,16 +38,16 @@ class _PasswordEntryScreenState extends State<PasswordEntryScreen> {
       child: Scaffold(
         backgroundColor: Palette.basic.background,
         appBar: AppBar(
-          title: Text("Unlock ${widget.unlock} Mode"),
+          title: Text("Unlock ${widget.unlock.capitalize()} Mode"),
         ),
         body: LayoutBuilder(
             builder: (context, constraints) => Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(24),
                   child: Form(
                     key: _formKey,
                     child: Column(
                       children: [
-                        SizedBox(height: constraints.biggest.height * 0.05),
+                        SizedBox(height: constraints.biggest.height * 0.01),
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
@@ -64,7 +63,7 @@ class _PasswordEntryScreenState extends State<PasswordEntryScreen> {
                         ),
                         SizedBox(height: constraints.biggest.height * 0.05),
                         Text(
-                          "Trying to unlock ${widget.unlock} mode?",
+                          "Trying to unlock ${widget.unlock.capitalize()} Mode?",
                           style: TextStyle(
                               fontSize: 26, color: Palette.basic.text),
                         ),
@@ -78,6 +77,15 @@ class _PasswordEntryScreenState extends State<PasswordEntryScreen> {
                         TextFormField(
                           controller: textController,
                           decoration: InputDecoration(
+                            enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(
+                                    color: Palette.basic.primary, width: 2)),
+                            errorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(
+                                    color: Palette.basic.error, width: 2)),
+                            hintText: "Password",
                             fillColor: Palette.basic.secondary,
                             border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
@@ -85,20 +93,15 @@ class _PasswordEntryScreenState extends State<PasswordEntryScreen> {
                                     color: Palette.basic.primary, width: 2)),
                           ),
                         ),
-                        SizedBox(height: constraints.biggest.height * 0.05),
-                        TextButton(
-                          style: TextButton.styleFrom(
-                              backgroundColor: Palette.basic.primary,
-                              foregroundColor: Palette.basic.background),
-                          onPressed: () async {
-                            if (_formKey.currentState?.validate() ?? false) {
-                              Logger.info(
-                                  "password entered: [${textController.text}] for [${widget.unlock}]");
-                              PasswordCheckerService pwCheck =
-                                  PasswordCheckerService();
-                              var success = await pwCheck.unlockStyleTheme(
-                                  'secret', textController.text.trim());
-                              if (success && context.mounted) {
+                        const Spacer(),
+                        SizedBox(
+                          width: constraints.biggest.width * 0.9,
+                          child: TextButton(
+                            style: TextButton.styleFrom(
+                                backgroundColor: Palette.basic.accent,
+                                foregroundColor: Palette.basic.background),
+                            onPressed: () async {
+                              if (_formKey.currentState?.validate() ?? false) {
                                 Logger.info(
                                     "PasswordEntryScreen .. unlock() success!");
                                 Fluttertoast.showToast(
@@ -124,37 +127,33 @@ class _PasswordEntryScreenState extends State<PasswordEntryScreen> {
                                   }
                                 } else {
                                   Fluttertoast.showToast(
-                                    msg:
-                                        "Something went wrong unlocking ${widget.unlock} mode, but the password was correct!",
-                                    backgroundColor: Palette.basic.error,
-                                    textColor: Palette.basic.text,
-                                  );
+                                      msg: "That didn't work. Try again.",
+                                      backgroundColor: Palette.basic.error,
+                                      textColor: Palette.basic.text);
+                                  Logger.info(
+                                      "PasswordEntryScreen .. unlock() failure!");
                                 }
-                              } else {
-                                Fluttertoast.showToast(
-                                    msg: "That didn't work. Try again.",
-                                    backgroundColor: Palette.basic.error,
-                                    textColor: Palette.basic.text);
-                                Logger.info(
-                                    "PasswordEntryScreen .. unlock() failure!");
                               }
-                            }
-                          },
-                          child: const Text("Unlock"),
+                            },
+                            child: const Text("Unlock"),
+                          ),
                         ),
-                        SizedBox(height: constraints.biggest.height * 0.05),
-                        TextButton(
-                          style: TextButton.styleFrom(
-                              backgroundColor: Palette.basic.primary,
-                              foregroundColor: Palette.basic.background),
-                          onPressed: () {
-                            context
-                                .goNamed(CalendarScreen.name, pathParameters: {
-                              "epochDate":
-                                  "${DateTimeUtils.epochDays(DateUtils.addDaysToDate(DateTime.now(), 0))}"
-                            });
-                          },
-                          child: const Text("Cancel"),
+                        SizedBox(
+                          width: constraints.biggest.width * 0.9,
+                          child: OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                                side: BorderSide(color: Palette.basic.primary),
+                                backgroundColor: Palette.basic.background,
+                                foregroundColor: Palette.basic.text),
+                            onPressed: () {
+                              context.goNamed(CalendarScreen.name,
+                                  pathParameters: {
+                                    "epochDate":
+                                        "${DateTimeUtils.epochDays(DateUtils.addDaysToDate(DateTime.now(), 0))}"
+                                  });
+                            },
+                            child: const Text("Cancel"),
+                          ),
                         ),
                         const Spacer(),
                       ],

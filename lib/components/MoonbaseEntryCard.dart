@@ -229,13 +229,13 @@ class MoonbaseEntryCard extends StatelessWidget {
                       .map<FilterChip>(
                         (element) => FilterChip(
                           backgroundColor: palette.accent,
-                          deleteIconColor: palette.text,
+                          deleteIconColor: palette.background,
                           onSelected: (value) => {}, // do nothing
                           shape: StadiumBorder(
                               side: BorderSide(color: palette.accent)),
                           label: Text(element.text,
-                              style:
-                                  TextStyle(color: palette.text, fontSize: 16)),
+                              style: TextStyle(
+                                  color: palette.background, fontSize: 16)),
                           onDeleted: editingMode
                               ? () {
                                   tagDeletedCallback(element);

@@ -24,6 +24,7 @@ class Moonbase extends StatelessWidget {
       theme: ThemeData(
         colorScheme: Palette.basic.lightTheme,
         textButtonTheme: MoonbaseTheme.textButtonTheme,
+        outlinedButtonTheme: MoonbaseTheme.outlineButtonTheme,
         textTheme: MoonbaseTheme.textTheme,
       ),
       darkTheme: ThemeData(colorScheme: Palette.basic.darkTheme),
