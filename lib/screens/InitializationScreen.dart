@@ -35,6 +35,10 @@ class _InitializationScreenState extends State<InitializationScreen> {
       DatabaseService.instance
           .addTheme(StyleTheme(paletteName: 'secret', unlocked: false));
     }
+    if (instance.getTheme('froggy') == null) {
+      DatabaseService.instance
+          .addTheme(StyleTheme(paletteName: 'froggy', unlocked: false));
+    }
     late bool firstTime;
     try {
       firstTime = await SharedPreferencesService.firstTimeFlag;

@@ -281,6 +281,8 @@ class DatabaseService {
 
   //////// STYLE THEMES
 
+  List<StyleTheme> get themes => _styleThemeBox.values.toList();
+
   StyleTheme? getTheme(String name) => _styleThemeBox.values
       .where(
           (element) => element.paletteName.toLowerCase() == name.toLowerCase())

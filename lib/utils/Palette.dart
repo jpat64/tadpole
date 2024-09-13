@@ -58,6 +58,8 @@ class Palette {
     required this.error,
   });
 
+  List<Color> get swatches => [primary, secondary, splash, accent, error];
+
   static Palette get basic => Palette(
         background: Colors.paperworkWhite,
         text: Colors.graphiteGray,
@@ -70,8 +72,21 @@ class Palette {
         error: Colors.alertRed,
       );
 
+  static Palette get froggy => Palette(
+        background: Colors.seafoamWhite,
+        text: Colors.pupilBlack,
+        primary: Colors.froggyGreen,
+        secondary: Colors.tealeafGreen,
+        splash: Colors.salmonPink,
+        accent: Colors.waterBlue,
+        off: Colors.moonGray,
+        disabled: Colors.craterGray,
+        error: Colors.jasperRed,
+      );
+
   static Map<String, Palette> get palettesByName => {
         "basic": basic,
+        "froggy": froggy,
       };
 
   static Future<Palette> get currentPalette async {
@@ -85,6 +100,7 @@ class Palette {
 }
 
 class Colors {
+  // basic palette colors
   static Color paperworkWhite = const Color(0xfffffdfa);
   static Color graphiteGray = const Color(0xff1a1a16);
   static Color spaceBlue = const Color(0xff1f1847);
@@ -94,4 +110,13 @@ class Colors {
   static Color moonGray = const Color(0xffd9d5d0);
   static Color craterGray = const Color(0xffa1a19a);
   static Color alertRed = const Color(0xffd95553);
+
+  // froggy palette colors
+  static Color seafoamWhite = const Color(0xfffafffa);
+  static Color pupilBlack = const Color(0xff141a12);
+  static Color froggyGreen = const Color(0xff488046);
+  static Color tealeafGreen = const Color(0xffc0dbbf);
+  static Color salmonPink = const Color(0xfff4989c);
+  static Color waterBlue = const Color(0xff6d96e3);
+  static Color jasperRed = const Color(0xffde534b);
 }

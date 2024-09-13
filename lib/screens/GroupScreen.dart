@@ -96,29 +96,36 @@ class _GroupScreenState extends State<GroupScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                IconButton(
-                    icon: Icon(Icons.arrow_back_ios_rounded,
-                        color: palette?.text ?? Palette.basic.text),
-                    onPressed: previousName == null
-                        ? null
-                        : () {
-                            context.pushNamed(GroupScreen.name,
-                                pathParameters: {"groupName": previousName!});
-                          }),
+                Visibility(
+                    visible: previousName != null,
+                    child: IconButton(
+                        icon: Icon(Icons.arrow_back_ios_rounded,
+                            color: palette?.text ?? Palette.basic.text),
+                        onPressed: previousName != null
+                            ? () {
+                                context.pushNamed(GroupScreen.name,
+                                    pathParameters: {
+                                      "groupName": previousName!
+                                    });
+                              }
+                            : null)),
                 const Spacer(),
                 Text(
                   group.name,
                 ),
                 const Spacer(),
-                IconButton(
-                    icon: Icon(Icons.arrow_forward_ios_rounded,
-                        color: palette?.text ?? Palette.basic.text),
-                    onPressed: nextName == null
-                        ? null
-                        : () {
-                            context.pushNamed(GroupScreen.name,
-                                pathParameters: {"groupName": nextName!});
-                          }),
+                Visibility(
+                  visible: nextName != null,
+                  child: IconButton(
+                      icon: Icon(Icons.arrow_forward_ios_rounded,
+                          color: palette?.text ?? Palette.basic.text),
+                      onPressed: nextName == null
+                          ? null
+                          : () {
+                              context.pushNamed(GroupScreen.name,
+                                  pathParameters: {"groupName": nextName!});
+                            }),
+                ),
               ],
             ),
           ),

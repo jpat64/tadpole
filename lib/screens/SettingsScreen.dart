@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_email_sender/flutter_email_sender.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moonbase/components/MoonbaseBottomBar.dart';
 import 'package:moonbase/components/MoonbaseDateTimeSelector.dart';
@@ -37,7 +38,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Palette? palette;
   bool? secretMode;
+  StyleTheme? selectedTheme;
   late bool secretModeUnlocked;
+  late bool froggyModeUnlocked;
 
   bool loaded = false;
 
@@ -45,6 +48,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void initState() {
     super.initState();
     secretModeUnlocked = false;
+    froggyModeUnlocked = false;
     relevantDateTime =
         DateTime.now(); // used for starting values for date time picker
   }
@@ -61,6 +65,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
   }
 
+  Future<void> wasFroggyModeUnlocked() async {
+    DatabaseService instance = DatabaseService.instance;
+    StyleTheme? froggyTheme = instance.getTheme('froggy');
+    setState(() {
+      if (froggyTheme != null) {
+        froggyModeUnlocked = froggyTheme.unlocked;
+      } else {
+        froggyModeUnlocked = false;
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     SchedulerBinding.instance.addPostFrameCallback((timestamp) async {
@@ -71,6 +87,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             palette = foundPalette;
           });
         }
+        if (selectedTheme == null) {
+          StyleTheme foundSelectedTheme = DatabaseService.instance
+                  .getTheme(await SharedPreferencesService.selectedThemeName) ??
+              StyleTheme(paletteName: 'basic', unlocked: true);
+          setState(() {
+            selectedTheme = foundSelectedTheme;
+          });
+        }
         if (secretMode == null) {
           bool? foundSecretMode = await SharedPreferencesService.secretModeFlag;
           setState(() {
@@ -78,6 +102,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           });
         }
         await wasSecretModeUnlocked();
+        await wasFroggyModeUnlocked();
         setState(() {
           loaded = true;
         });
@@ -102,7 +127,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         body: LayoutBuilder(
           builder: (context, constraints) => Container(
             padding: const EdgeInsets.all(16),
-            child: Column(
+            child: ListView(
               children: [
                 const Align(
                     alignment: Alignment.centerLeft,
@@ -374,6 +399,59 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       onPressed: () => context.goNamed(PasswordEntryScreen.name,
                           pathParameters: {"unlock": "secret"}),
                       child: const Text("Unlock Secret Mode"),
+                    ),
+                  ),
+                if (froggyModeUnlocked)
+                  ExpansionTile(
+                      title: const Text("Choose Theme"),
+                      initiallyExpanded: true,
+                      children: DatabaseService.instance.themes
+                          .where((element) => element.paletteName != 'secret')
+                          .map<Widget>((element) {
+                        Palette themePalette =
+                            Palette.palettesByName[element.paletteName] ??
+                                Palette.basic;
+                        return Container(
+                          decoration: BoxDecoration(
+                              border: Border.all(
+                                  color: themePalette.primary, width: 3)),
+                          child: ListTile(
+                            enabled: element.unlocked,
+                            textColor: themePalette.text,
+                            tileColor: themePalette.background,
+                            onTap: () async {
+                              await SharedPreferencesService
+                                  .setSelectedThemeName(element.paletteName);
+                              setState(() {
+                                selectedTheme = element;
+                              });
+                              Fluttertoast.showToast(
+                                  msg: "Theme will change next screen!");
+                            },
+                            title: Text(element.paletteName),
+                            trailing: SizedBox(
+                                width: constraints.biggest.width * 0.5,
+                                child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: themePalette.swatches
+                                        .map<Badge>((element) => Badge(
+                                              backgroundColor: element,
+                                              smallSize: 24,
+                                            ))
+                                        .toList())),
+                          ),
+                        );
+                      }).toList()),
+                if (!froggyModeUnlocked)
+                  SizedBox(
+                    width: constraints.biggest.width * 0.9,
+                    child: TextButton(
+                      style: TextButton.styleFrom(
+                          backgroundColor: palette?.primary,
+                          foregroundColor: palette?.background),
+                      onPressed: () => context.goNamed(PasswordEntryScreen.name,
+                          pathParameters: {"unlock": "froggy"}),
+                      child: const Text("Unlock Froggy Theme"),
                     ),
                   ),
                 SizedBox(
