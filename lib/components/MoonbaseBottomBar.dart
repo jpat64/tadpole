@@ -6,6 +6,7 @@ import 'package:moonbase/screens/CalendarScreen.dart';
 import 'package:moonbase/screens/EntryScreen.dart';
 import 'package:moonbase/screens/GroupScreen.dart';
 import 'package:moonbase/screens/SettingsScreen.dart';
+import 'package:moonbase/services/DatabaseService.dart';
 import 'package:moonbase/utils/Palette.dart';
 
 class MoonbaseBottomBar extends StatelessWidget {
@@ -41,7 +42,9 @@ class MoonbaseBottomBar extends StatelessWidget {
       case EntryScreen.name:
         return {"epochDate": "${EntryScreen.defaultEpochDate}"};
       case GroupScreen.name:
-        return {"groupId": "${GroupScreen.defaultGroupId}"};
+        return {
+          "groupName": DatabaseService.instance.sortedEntryGroups.last.name
+        };
       default:
         return const <String, String>{};
     }

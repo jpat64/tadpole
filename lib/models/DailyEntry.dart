@@ -1,12 +1,11 @@
 // ignore_for_file: file_names
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:moonbase/models/DailyEntryTag.dart';
-import 'package:moonbase/models/EntryGroup.dart';
 
 part 'DailyEntry.g.dart';
 
 @HiveType(typeId: 0)
-class DailyEntry {
+class DailyEntry implements Comparable {
   @HiveField(0)
   String? notes;
 
@@ -28,8 +27,8 @@ class DailyEntry {
   @HiveField(6)
   bool? secured;
 
-  @HiveField(7, defaultValue: EntryGroup.defaultId)
-  String entryGroupId;
+  @HiveField(7, defaultValue: DailyEntry.defaultEntryGroupName)
+  String entryGroupName;
 
   DailyEntry({
     this.notes,
@@ -39,7 +38,7 @@ class DailyEntry {
     required this.pallor,
     this.tags,
     this.secured,
-    required this.entryGroupId,
+    required this.entryGroupName,
   });
 
   String get id => "E$epochDate";
@@ -47,6 +46,8 @@ class DailyEntry {
   static String generateId(int epochDate) {
     return "E$epochDate";
   }
+
+  static const String defaultEntryGroupName = "New Group";
 
   Map<String, dynamic> toJson() => {
         "id": id,
@@ -60,11 +61,18 @@ class DailyEntry {
                 ?.map<Map<String, dynamic>>((element) => element.toJson())
                 .toList() ??
             [],
-        "entryGroup": entryGroupId,
+        "entryGroup": entryGroupName,
       };
 
   @override
   String toString() {
-    return "DailyEntry: epochDate:$epochDate current:$current points:$points pallor:$pallor tags:$tags notes:$notes secured:$secured entryGroup:$entryGroupId";
+    return "DailyEntry: epochDate:$epochDate current:$current points:$points pallor:$pallor tags:$tags notes:$notes secured:$secured entryGroup:$entryGroupName";
+  }
+
+  @override
+  int compareTo(dynamic other) {
+    assert(other is DailyEntry,
+        "DailyEntries can only be compared to other DailyEntries");
+    return epochDate.compareTo((other as DailyEntry).epochDate);
   }
 }

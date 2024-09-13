@@ -11,13 +11,16 @@ class MoonbaseEntryCard extends StatelessWidget {
   final bool editingMode;
   final bool initialSecured;
   final bool initialNewEntryGroup;
+  final TextEditingController groupNameEditingController;
+  final String initialGroupName;
   final int initialCurrent;
   final int initialPoints;
   final int initialPallor;
   final List<DailyEntryTag> initialTags;
-  final TextEditingController textEditingController;
+  final TextEditingController notesEditingController;
   final void Function(bool?) securedOnChangedCallback;
   final void Function(bool?) newEntryGroupOnChangedCallback;
+  final void Function(String?) groupNameOnChangedCallback;
   final void Function(int?) currentOnChangedCallback;
   final void Function(int?) pointsOnChangedCallback;
   final void Function(int?) pallorOnChangedCallback;
@@ -33,13 +36,16 @@ class MoonbaseEntryCard extends StatelessWidget {
     required this.editingMode,
     required this.initialSecured,
     required this.initialNewEntryGroup,
+    required this.groupNameEditingController,
+    required this.initialGroupName,
     required this.initialCurrent,
     required this.initialPoints,
     required this.initialPallor,
     required this.initialTags,
-    required this.textEditingController,
+    required this.notesEditingController,
     required this.securedOnChangedCallback,
     required this.newEntryGroupOnChangedCallback,
+    required this.groupNameOnChangedCallback,
     required this.currentOnChangedCallback,
     required this.pointsOnChangedCallback,
     required this.pallorOnChangedCallback,
@@ -102,6 +108,18 @@ class MoonbaseEntryCard extends StatelessWidget {
                     ),
                   ],
                 ),
+              ),
+              TextField(
+                controller: groupNameEditingController,
+                enabled: editingMode,
+                cursorErrorColor: palette.error,
+                onChanged: groupNameOnChangedCallback,
+                minLines: 1,
+                style: TextStyle(color: palette.text),
+                decoration: InputDecoration(
+                    border: const OutlineInputBorder(),
+                    enabledBorder: const OutlineInputBorder(),
+                    hintText: "Name the new ${secretMode ? "Cycle" : "Group"}"),
               ),
               Divider(color: palette.primary),
               Container(
@@ -240,14 +258,14 @@ class MoonbaseEntryCard extends StatelessWidget {
                 Badge(
                   smallSize: 24,
                   backgroundColor:
-                      editingMode || textEditingController.text.isNotEmpty
+                      editingMode || notesEditingController.text.isNotEmpty
                           ? palette.primary
                           : palette.disabled,
                 )
               ]),
               editingMode
                   ? TextField(
-                      controller: textEditingController,
+                      controller: notesEditingController,
                       enabled: editingMode,
                       cursorErrorColor: palette.error,
                       onChanged: textInputOnChangedCallback,
@@ -256,8 +274,8 @@ class MoonbaseEntryCard extends StatelessWidget {
                       style: TextStyle(color: palette.text),
                     )
                   : ListTile(
-                      title: textEditingController.text.isNotEmpty
-                          ? Text(textEditingController.text,
+                      title: notesEditingController.text.isNotEmpty
+                          ? Text(notesEditingController.text,
                               style:
                                   TextStyle(fontSize: 18, color: palette.text))
                           : Text(

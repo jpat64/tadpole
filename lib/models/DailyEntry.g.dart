@@ -24,7 +24,7 @@ class DailyEntryAdapter extends TypeAdapter<DailyEntry> {
       pallor: fields[4] as int,
       tags: (fields[5] as List?)?.cast<DailyEntryTag>(),
       secured: fields[6] as bool?,
-      entryGroupId: fields[7] == null ? 'EG0001' : fields[7] as String,
+      entryGroupName: fields[7] == null ? 'New Group' : fields[7] as String,
     );
   }
 
@@ -47,7 +47,7 @@ class DailyEntryAdapter extends TypeAdapter<DailyEntry> {
       ..writeByte(6)
       ..write(obj.secured)
       ..writeByte(7)
-      ..write(obj.entryGroupId);
+      ..write(obj.entryGroupName);
   }
 
   @override

@@ -42,10 +42,10 @@ final GoRouter router = GoRouter(
           PasswordEntryScreen(unlock: state.pathParameters['unlock']!),
     ),
     GoRoute(
-      path: "${GroupScreen.name}/:groupId",
+      path: "${GroupScreen.name}/:groupName",
       name: GroupScreen.name,
       builder: (context, state) =>
-          GroupScreen(groupId: int.parse(state.pathParameters['groupId']!)),
+          GroupScreen(groupName: state.pathParameters['groupName']!),
     ),
   ],
 );

@@ -6,40 +6,33 @@ import 'package:moonbase/components/LoadingWidget.dart';
 import 'package:moonbase/components/MoonbaseBottomBar.dart';
 import 'package:moonbase/components/MoonbaseEntryGroupCard.dart';
 import 'package:moonbase/models/EntryGroup.dart';
-import 'package:moonbase/models/DailyEntry.dart';
+import 'package:moonbase/screens/CalendarScreen.dart';
 import 'package:moonbase/services/DatabaseService.dart';
 import 'package:moonbase/services/Logger.dart';
 import 'package:moonbase/services/SharedPreferencesService.dart';
 
-import 'package:intl/intl.dart';
 import 'package:moonbase/utils/Palette.dart';
 
 class GroupScreen extends StatefulWidget {
-  const GroupScreen({super.key, required this.groupId});
+  const GroupScreen({super.key, required this.groupName});
 
-  final int groupId;
+  final String groupName;
 
   @override
   State<StatefulWidget> createState() => _GroupScreenState();
 
   static const String name = "/group";
   static const int navIndex = 2;
-  static int defaultGroupId = DatabaseService.instance.mostRecentEntryGroup.id;
 }
 
 class _GroupScreenState extends State<GroupScreen> {
-  DateTime? relevantDateTime;
-
-  DateFormat dayMonthYear = DateFormat("MMMM d yyyy");
-
   TextEditingController nameTextController = TextEditingController();
-  EntryGroup? group;
-  List<DailyEntry>? entries;
+  late EntryGroup group;
 
   Palette? palette;
   bool? secretMode;
-  int? previousId;
-  int? nextId;
+  String? previousName;
+  String? nextName;
 
   bool editingMode = false;
   bool loaded = false;
@@ -48,32 +41,20 @@ class _GroupScreenState extends State<GroupScreen> {
   @override
   void initState() {
     super.initState();
-  }
 
-  void loadEntryGroup() {
-    DatabaseService instance = DatabaseService.instance;
-    EntryGroup? relevantEntryGroup =
-        instance.getEntryGroupById(EntryGroup.generateId(widget.groupId));
-    relevantEntryGroup ??= instance.mostRecentEntryGroup;
-    List<DailyEntry>? relevantEntries =
-        instance.getEntriesForGroup(EntryGroup.generateId(widget.groupId));
-    setState(() {
-      group = relevantEntryGroup!;
-      nameTextController.text = group!.name;
-      entries = relevantEntries;
-    });
+    group = DatabaseService.instance.sortedEntryGroups
+        .firstWhere((element) => element.name == widget.groupName);
+    nameTextController.text = group.name;
   }
 
   void loadAdjacentEntryGroups() {
-    if (group != null) {
-      DatabaseService instance = DatabaseService.instance;
-      EntryGroup? previous = instance.getPreviousEntryGroup(group!);
-      EntryGroup? next = instance.getNextEntryGroup(group!);
-      setState(() {
-        previousId = previous?.id;
-        nextId = next?.id;
-      });
-    }
+    DatabaseService instance = DatabaseService.instance;
+    EntryGroup? previous = instance.getPreviousEntryGroup(group);
+    EntryGroup? next = instance.getNextEntryGroup(group);
+    setState(() {
+      previousName = previous?.name;
+      nextName = next?.name;
+    });
   }
 
   Future<void> loadPalette() async {
@@ -96,7 +77,6 @@ class _GroupScreenState extends State<GroupScreen> {
     WidgetsBinding.instance.addPostFrameCallback((timestamp) async {
       // only run if not loaded
       if (loaded == false) {
-        loadEntryGroup();
         loadAdjacentEntryGroups();
         await loadPalette();
         await loadSecretModeToggle();
@@ -119,25 +99,25 @@ class _GroupScreenState extends State<GroupScreen> {
                 IconButton(
                     icon: Icon(Icons.arrow_back_ios_rounded,
                         color: palette?.text ?? Palette.basic.text),
-                    onPressed: previousId == null
+                    onPressed: previousName == null
                         ? null
                         : () {
                             context.pushNamed(GroupScreen.name,
-                                pathParameters: {"groupId": "$previousId"});
+                                pathParameters: {"groupName": previousName!});
                           }),
                 const Spacer(),
                 Text(
-                  group?.name ?? "Group",
+                  group.name,
                 ),
                 const Spacer(),
                 IconButton(
                     icon: Icon(Icons.arrow_forward_ios_rounded,
                         color: palette?.text ?? Palette.basic.text),
-                    onPressed: nextId == null
+                    onPressed: nextName == null
                         ? null
                         : () {
                             context.pushNamed(GroupScreen.name,
-                                pathParameters: {"groupId": "$nextId"});
+                                pathParameters: {"groupName": nextName!});
                           }),
               ],
             ),
@@ -161,23 +141,43 @@ class _GroupScreenState extends State<GroupScreen> {
                           secretMode: secretMode ?? false,
                           palette: palette ?? Palette.basic,
                           entryGroupNameController: nameTextController,
-                          entryGroupName: group?.name ?? "groupName",
-                          entries: entries ?? [],
+                          entryGroupName: group.name,
+                          entries: group.sortedDailyEntries,
                           onNameChangedCallback: (name) {
-                            setState(() {
-                              didAnythingChange = true;
-                              group?.name = name ?? "groupName";
-                            });
+                            if (DatabaseService.instance.sortedEntryGroups
+                                .where((element) => element.name == name)
+                                .isEmpty) {
+                              setState(() {
+                                didAnythingChange = true;
+                                group.name = name ?? group.name;
+                              });
+                            } else {
+                              Logger.warning(
+                                  "GroupScreen.nameChangedCallback entry is trying to make a new group but a group already exists with the name $name");
+                            }
                           },
-                          onDailyEntryReassignCallback: (entry, newGroup) {
+                          onDailyEntryReassignCallback:
+                              (entry, newGroup) async {
                             DatabaseService instance = DatabaseService.instance;
-                            entry.entryGroupId =
-                                EntryGroup.generateId(newGroup.id);
-                            instance.addDailyEntry(entry);
+                            entry.entryGroupName = newGroup.name;
+                            await instance.addDailyEntry(entry);
                             setState(() {
-                              entries?.removeWhere((element) =>
+                              group.sortedDailyEntries.removeWhere((element) =>
                                   element.epochDate == entry.epochDate);
+                              group.sortedDailyEntries.sort();
                             });
+                            if (group.sortedDailyEntries.isEmpty) {
+                              await instance.deleteEntryGroup(group);
+                              if (context.mounted) {
+                                context.goNamed(
+                                  CalendarScreen.name,
+                                  pathParameters: {
+                                    "epochDate":
+                                        "${CalendarScreen.defaultEpochDate}"
+                                  },
+                                );
+                              }
+                            }
                           },
                         ),
                       ),
@@ -216,6 +216,9 @@ class _GroupScreenState extends State<GroupScreen> {
                                   showDialog(
                                       context: context,
                                       builder: (context) => AlertDialog(
+                                              backgroundColor:
+                                                  palette?.secondary ??
+                                                      Palette.basic.secondary,
                                               title: ListTile(
                                                 title: Text(
                                                     "Are you sure you want to delete this ${secretMode ?? false ? "Cycle" : "Group"}?"),
@@ -242,30 +245,26 @@ class _GroupScreenState extends State<GroupScreen> {
                                                       backgroundColor:
                                                           palette?.error,
                                                     ),
-                                                    onPressed: group != null
-                                                        ? () async {
-                                                            DatabaseService
-                                                                instance =
-                                                                DatabaseService
-                                                                    .instance;
-                                                            bool success =
-                                                                await instance
-                                                                    .deleteEntryGroup(
-                                                                        group!);
-                                                            if (!context
-                                                                .mounted) {
-                                                              return;
-                                                            }
-                                                            context.pop();
-                                                            Logger.info(
-                                                                "Deleting group ${group?.id}: $success");
-                                                            if (success) {
-                                                              setState(() {
-                                                                loaded = false;
-                                                              });
-                                                            }
-                                                          }
-                                                        : null,
+                                                    onPressed: () async {
+                                                      DatabaseService instance =
+                                                          DatabaseService
+                                                              .instance;
+                                                      bool success =
+                                                          await instance
+                                                              .deleteEntryGroup(
+                                                                  group);
+                                                      if (!context.mounted) {
+                                                        return;
+                                                      }
+                                                      context.pop();
+                                                      Logger.info(
+                                                          "Deleting group ${group.name}: $success");
+                                                      if (success) {
+                                                        setState(() {
+                                                          loaded = false;
+                                                        });
+                                                      }
+                                                    },
                                                     child: Text(
                                                         "Delete this ${secretMode ?? false ? "Cycle" : "Group"}",
                                                         style: TextStyle(

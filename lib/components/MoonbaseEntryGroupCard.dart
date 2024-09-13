@@ -42,8 +42,8 @@ class MoonbaseEntryGroupCard extends StatelessWidget {
       for (int j = 0; (i + j < entries.length && j < 3); j++) {
         buttonsToAdd.add(
           SizedBox(
-            height: constraints.biggest.height * 0.175,
-            width: constraints.biggest.width * 0.25,
+            height: constraints.biggest.height * 0.2,
+            width: constraints.biggest.width * 0.26,
             child: MoonbaseEntryButton(
               palette: palette,
               entry: entries[i + j],
@@ -72,6 +72,9 @@ class MoonbaseEntryGroupCard extends StatelessWidget {
       children: <Widget>[
             editingMode
                 ? TextField(
+                    decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        enabledBorder: OutlineInputBorder()),
                     controller: entryGroupNameController,
                     enabled: editingMode,
                     cursorErrorColor: palette.error,

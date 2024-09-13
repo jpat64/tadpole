@@ -36,7 +36,9 @@ class _MoonbaseEntryButtonState extends State<MoonbaseEntryButton> {
   late bool secretMode;
   late void Function(DailyEntry, EntryGroup) onDailyEntryReassignCallback;
 
-  EntryGroup? selectedEntryGroup;
+  late EntryGroup selectedEntryGroup;
+
+  bool didAnythingChange = false;
 
   final DateFormat entryGroupMonthFormat = DateFormat("MMMM");
   final DateFormat entryGroupDateFormat = DateFormat("d");
@@ -49,6 +51,63 @@ class _MoonbaseEntryButtonState extends State<MoonbaseEntryButton> {
     palette = widget.palette;
     secretMode = widget.secretMode;
     onDailyEntryReassignCallback = widget.onDailyEntryReassignCallback;
+    selectedEntryGroup = DatabaseService.instance.sortedEntryGroups
+        .firstWhere((element) => element.name == widget.entry.entryGroupName);
+  }
+
+  Widget moveEntryModal(
+      BuildContext context, List<EntryGroup> entryGroups, DailyEntry entry) {
+    return StatefulBuilder(
+        builder: (context, modalSetState) => AlertDialog(
+              backgroundColor: palette.secondary,
+              title: Text(
+                  "Move this Entry to a different ${secretMode ? "Cycle" : "Group"}?"),
+              content: Column(
+                children: DatabaseService.instance.sortedEntryGroups
+                    .map<Widget>((element) => ListTile(
+                        title: Text(element.name),
+                        selected: selectedEntryGroup.name == element.name,
+                        selectedColor: palette.background,
+                        selectedTileColor: palette.primary,
+                        onTap: () {
+                          modalSetState(() {
+                            selectedEntryGroup = element;
+                            didAnythingChange = true;
+                          });
+                          setState(() {
+                            selectedEntryGroup = element;
+                            didAnythingChange = true;
+                          });
+                        }))
+                    .toList(),
+              ),
+              actions: [
+                TextButton(
+                    style: TextButton.styleFrom(
+                      backgroundColor: palette.primary,
+                    ),
+                    onPressed: () => context.pop(),
+                    child: Text("Cancel",
+                        style: TextStyle(color: palette.background))),
+                TextButton(
+                  style: TextButton.styleFrom(
+                    backgroundColor: palette.error,
+                    disabledBackgroundColor: palette.disabled,
+                  ),
+                  onPressed: didAnythingChange
+                      ? () {
+                          onDailyEntryReassignCallback(
+                              entry, selectedEntryGroup);
+                          context.pop();
+                        }
+                      : null,
+                  child: Text(
+                    "Move Entry",
+                    style: TextStyle(color: palette.background),
+                  ),
+                ),
+              ],
+            ));
   }
 
   @override
@@ -72,79 +131,42 @@ class _MoonbaseEntryButtonState extends State<MoonbaseEntryButton> {
           borderRadius: const BorderRadius.only(topLeft: Radius.circular(15))),
       child: Column(
         children: [
+          const Spacer(),
           Text(
             entryGroupMonthFormat.format(
               DateTimeUtils.dateFromEpochDays(entry.epochDate),
             ),
-            style: TextStyle(fontSize: 12, color: palette.text),
+            style: TextStyle(fontSize: 16, color: palette.text),
           ),
           const SizedBox(height: 4),
           Text(
             entryGroupDateFormat.format(
               DateTimeUtils.dateFromEpochDays(entry.epochDate),
             ),
-            style: TextStyle(fontSize: 20, color: palette.text),
+            style: TextStyle(fontSize: 24, color: palette.text),
           ),
           const SizedBox(height: 4),
           MoonbaseBadgeSection(
             badgeColors: badgeColors,
             sizes: const <double>[0, 12, 12, 12],
           ),
-          Row(children: [
+          const Spacer(),
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
             IconButton(
+                constraints: const BoxConstraints(),
+                iconSize: 16,
                 style: IconButton.styleFrom(backgroundColor: palette.primary),
                 icon: Icon(Icons.question_mark, color: palette.background),
                 onPressed: () {
                   // open dialog that lets you remove this entry from the list
                   showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      backgroundColor: palette.secondary,
-                      content: Column(
-                        children: <Widget>[
-                              Text(
-                                  "Move this Entry to a different ${secretMode ? "Cycle" : "Group"}?")
-                            ] +
-                            DatabaseService.instance.entryGroups
-                                .map<Widget>((element) => ListTile(
-                                    title: Text(element.name),
-                                    selected:
-                                        selectedEntryGroup?.id == element.id,
-                                    selectedColor: palette.background,
-                                    selectedTileColor: palette.primary,
-                                    onTap: () {
-                                      setState(() {
-                                        selectedEntryGroup = element;
-                                      });
-                                    }))
-                                .toList(),
-                      ),
-                      actions: [
-                        TextButton(
-                            style: TextButton.styleFrom(
-                              backgroundColor: palette.primary,
-                            ),
-                            onPressed: () => context.pop(),
-                            child: Text("Cancel",
-                                style: TextStyle(color: palette.background))),
-                        TextButton(
-                          style: TextButton.styleFrom(
-                            backgroundColor: palette.error,
-                          ),
-                          onPressed: selectedEntryGroup != null
-                              ? () => onDailyEntryReassignCallback(
-                                  entry, selectedEntryGroup!)
-                              : null,
-                          child: Text(
-                            "Move Entry",
-                            style: TextStyle(color: palette.background),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
+                      context: context,
+                      builder: (context) => moveEntryModal(context,
+                          DatabaseService.instance.sortedEntryGroups, entry));
                 }),
             IconButton(
+              constraints: const BoxConstraints(),
+              iconSize: 16,
               style: IconButton.styleFrom(backgroundColor: palette.accent),
               icon: Icon(Icons.arrow_forward, color: palette.background),
               onPressed: () => context.goNamed(EntryScreen.name,

@@ -16,11 +16,9 @@ class DatabaseService {
   static const String MOONBASE_DAILY_ENTRIES = "moonbase_daily_entries";
   static const String MOONBASE_DAILY_ENTRY_TAGS = "moonbase_daily_entry_tags";
   static const String MOONBASE_STYLETHEMES = "moonbase_stylethemes";
-  static const String MOONBASE_ENTRY_GROUPS = "moonbase_entry_groups";
   late final Box<DailyEntry> _dailyEntryBox;
   late final Box<DailyEntryTag> _dailyEntryTagBox;
   late final Box<StyleTheme> _styleThemeBox;
-  late final Box<EntryGroup> _entryGroupBox;
 
   Future<void> openBoxes() async {
     /*                          :::: DEBUG ONLY ::::
@@ -31,14 +29,11 @@ class DatabaseService {
      */
     // await Hive.deleteBoxFromDisk(MOONBASE_DAILY_ENTRIES);
     // await Hive.deleteBoxFromDisk(MOONBASE_DAILY_ENTRY_TAGS);
-    // await Hive.deleteBoxFromDisk(MOONBASE_ENTRY_GROUPS);
 
     _dailyEntryBox = await Hive.openBox<DailyEntry>(MOONBASE_DAILY_ENTRIES);
     _dailyEntryTagBox =
         await Hive.openBox<DailyEntryTag>(MOONBASE_DAILY_ENTRY_TAGS);
     _styleThemeBox = await Hive.openBox<StyleTheme>(MOONBASE_STYLETHEMES);
-    _entryGroupBox = await Hive.openBox<EntryGroup>(MOONBASE_ENTRY_GROUPS,
-        crashRecovery: false);
   }
 
   static Future<void> initialize() async {
@@ -50,7 +45,6 @@ class DatabaseService {
       Hive.registerAdapter(DailyEntryAdapter());
       Hive.registerAdapter(DailyEntryTagAdapter());
       Hive.registerAdapter(StyleThemeAdapter());
-      Hive.registerAdapter(EntryGroupAdapter());
 
       Logger.info("Initializing... adapters registered!");
 
@@ -69,8 +63,6 @@ class DatabaseService {
           "Number of DailyEntry Tags: ${instance._dailyEntryTagBox.values.length}");
       Logger.info(
           "Number of StyleThemes: ${instance._styleThemeBox.values.length}");
-      Logger.info(
-          "Number of EntryGroups: ${instance._entryGroupBox.values.length}");
     } catch (e) {
       Logger.warning("DatabaseService.initialize() error ${e.toString()}");
     }
@@ -80,7 +72,6 @@ class DatabaseService {
     await _dailyEntryBox.clear();
     await _dailyEntryTagBox.clear();
     await _styleThemeBox.clear();
-    await _entryGroupBox.clear();
     return true;
   }
 
@@ -129,7 +120,7 @@ class DatabaseService {
       notes: extEntry.notes == "--" ? null : extEntry.notes,
       tags: extEntryTags?.map((element) => searchTags(element)[0]).toList(),
       secured: extEntry.secured,
-      entryGroupId: extEntry.entryGroupId,
+      entryGroupName: extEntry.entryGroupName,
     );
     Logger.info("external data processing: adding daily entry $entry");
     success = await addDailyEntry(entry);
@@ -164,6 +155,66 @@ class DatabaseService {
       return true;
     } catch (e) {
       Logger.warning(e.toString());
+      return false;
+    }
+  }
+
+  List<EntryGroup> get sortedEntryGroups {
+    List<EntryGroup> allEntryGroups = <EntryGroup>[];
+    for (DailyEntry entry in _dailyEntryBox.values) {
+      EntryGroup? existingEntryGroup = allEntryGroups
+          .where((element) => element.name == entry.entryGroupName)
+          .firstOrNull;
+      if (existingEntryGroup != null) {
+        existingEntryGroup.sortedDailyEntries.add(entry);
+        existingEntryGroup.sortedDailyEntries.sort();
+      } else {
+        existingEntryGroup =
+            EntryGroup(name: entry.entryGroupName, sortedDailyEntries: [entry]);
+        allEntryGroups.add(existingEntryGroup);
+      }
+    }
+    allEntryGroups.sort();
+    return allEntryGroups;
+  }
+
+  EntryGroup? getPreviousEntryGroup(EntryGroup group) {
+    int index =
+        sortedEntryGroups.indexWhere((element) => element.name == group.name);
+    if (index - 1 >= 0) {
+      return sortedEntryGroups[index - 1];
+    }
+    return null;
+  }
+
+  EntryGroup? getNextEntryGroup(EntryGroup group) {
+    int index =
+        sortedEntryGroups.indexWhere((element) => element.name == group.name);
+    if (index + 1 < sortedEntryGroups.length) {
+      return sortedEntryGroups[index + 1];
+    }
+    return null;
+  }
+
+  bool isEntryFirstInGroup(DailyEntry entry) => (sortedEntryGroups
+      .where((element) =>
+          element.sortedDailyEntries.first.epochDate == entry.epochDate)
+      .isNotEmpty);
+
+  Future<bool> deleteEntryGroup(EntryGroup group) async {
+    String newGroupName = getPreviousEntryGroup(group)?.name ??
+        getNextEntryGroup(group)?.name ??
+        DailyEntry.defaultEntryGroupName;
+    try {
+      bool success = true;
+      for (DailyEntry affectedEntry in group.sortedDailyEntries) {
+        affectedEntry.entryGroupName = newGroupName;
+        success = success || await addDailyEntry(affectedEntry);
+      }
+      return success;
+    } catch (e) {
+      Logger.warning(
+          "DatabaseService deleteEntryGroup failed for group $group");
       return false;
     }
   }
@@ -282,81 +333,4 @@ class DatabaseService {
       await _setThemeLock(name, true);
 
   Future<bool> lockTheme(String name) async => await _setThemeLock(name, false);
-
-  //////// ENTRY GROUPS
-  List<EntryGroup> get entryGroups => _entryGroupBox.values.toList();
-
-  EntryGroup? getEntryGroupById(String id) => _entryGroupBox.get(id);
-
-  EntryGroup? getEntryGroupByName(String name) => _entryGroupBox.values
-      .where((element) => element.name == name)
-      .firstOrNull;
-
-  List<DailyEntry> getEntriesForGroup(String id) => _dailyEntryBox.values
-      .where((element) => element.entryGroupId == id)
-      .toList();
-
-  Future<bool> addEntryGroup(EntryGroup group) async {
-    try {
-      await _entryGroupBox.put(EntryGroup.generateId(group.id), group);
-      return true;
-    } catch (e) {
-      Logger.warning(e.toString());
-      return false;
-    }
-  }
-
-  List<EntryGroup> get _sortedEntryGroups => (_entryGroupBox.values.toList()
-    ..sort(
-      (element, other) =>
-          element.last.epochDate.compareTo(other.last.epochDate),
-    ));
-
-  EntryGroup get mostRecentEntryGroup {
-    if (_entryGroupBox.values.isEmpty) {
-      return EntryGroup(id: -1, name: EntryGroup.defaultId);
-    } else {
-      return _sortedEntryGroups.last;
-    }
-  }
-
-  EntryGroup? getPreviousEntryGroup(EntryGroup group) {
-    int index =
-        _sortedEntryGroups.indexWhere((element) => element.id == group.id);
-    if (index - 1 >= 0) {
-      return _sortedEntryGroups[index - 1];
-    }
-    return null;
-  }
-
-  EntryGroup? getNextEntryGroup(EntryGroup group) {
-    int index =
-        _sortedEntryGroups.indexWhere((element) => element.id == group.id);
-    if (index + 1 < _sortedEntryGroups.length) {
-      return _sortedEntryGroups[index + 1];
-    }
-    return null;
-  }
-
-  Future<bool> deleteEntryGroup(EntryGroup group) async {
-    List<DailyEntry> abandonedEntries =
-        getEntriesForGroup(EntryGroup.generateId(group.id));
-    EntryGroup destinationGroup = getPreviousEntryGroup(group) ??
-        getNextEntryGroup(group) ??
-        EntryGroup(id: -1, name: EntryGroup.defaultId);
-
-    try {
-      bool success = true;
-      for (DailyEntry abandonedEntry in abandonedEntries) {
-        abandonedEntry.entryGroupId =
-            EntryGroup.generateId(destinationGroup.id);
-        success = success || await instance.addDailyEntry(abandonedEntry);
-      }
-      await _entryGroupBox.delete(EntryGroup.generateId(group.id));
-      return success;
-    } catch (e) {
-      Logger.warning(e.toString());
-      return false;
-    }
-  }
 }

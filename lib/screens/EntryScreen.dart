@@ -7,7 +7,6 @@ import 'package:moonbase/components/MoonbaseBottomBar.dart';
 import 'package:moonbase/components/MoonbaseEntryCard.dart';
 import 'package:moonbase/models/DailyEntry.dart';
 import 'package:moonbase/models/DailyEntryTag.dart';
-import 'package:moonbase/models/EntryGroup.dart';
 import 'package:moonbase/services/DatabaseService.dart';
 import 'package:moonbase/services/Logger.dart';
 import 'package:moonbase/services/SharedPreferencesService.dart';
@@ -36,6 +35,7 @@ class _EntryScreenState extends State<EntryScreen> {
   DateFormat dayMonthYear = DateFormat("MMMM d yyyy");
 
   TextEditingController notesTextController = TextEditingController();
+  TextEditingController groupNameEditingController = TextEditingController();
   late String notes;
   late final int epochDate;
   late bool secured;
@@ -43,12 +43,12 @@ class _EntryScreenState extends State<EntryScreen> {
   late int points;
   late int pallor;
   late List<DailyEntryTag> tags;
-  late String entryGroupId;
+  late String entryGroupName;
 
   Palette? palette;
   bool? secretMode;
 
-  bool? createNewGroup;
+  bool createNewGroup = false;
   bool editingMode = false;
   bool loaded = false;
   bool didAnythingChange = false;
@@ -86,8 +86,7 @@ class _EntryScreenState extends State<EntryScreen> {
         tags = <DailyEntryTag>[];
         notes = "";
         notesTextController.text = "";
-        createNewGroup = false;
-        entryGroupId = EntryGroup.defaultId;
+        entryGroupName = DailyEntry.defaultEntryGroupName;
       } else {
         secured = relevantEntry.secured ?? false;
         current = relevantEntry.current;
@@ -96,12 +95,7 @@ class _EntryScreenState extends State<EntryScreen> {
         tags = relevantEntry.tags ?? <DailyEntryTag>[];
         notes = relevantEntry.notes ?? "";
         notesTextController.text = notes;
-        createNewGroup = (instance
-                .getEntryGroupById(relevantEntry.entryGroupId)
-                ?.first
-                .epochDate) ==
-            relevantEntry.epochDate;
-        entryGroupId = relevantEntry.entryGroupId;
+        entryGroupName = relevantEntry.entryGroupName;
       }
     });
   }
@@ -180,12 +174,14 @@ class _EntryScreenState extends State<EntryScreen> {
                       palette: palette ?? Palette.basic,
                       editingMode: editingMode,
                       initialSecured: secured,
-                      initialNewEntryGroup: createNewGroup ?? false,
+                      initialNewEntryGroup: createNewGroup,
+                      initialGroupName: entryGroupName,
                       initialCurrent: current,
                       initialPoints: points,
                       initialPallor: pallor,
                       initialTags: tags,
-                      textEditingController: notesTextController,
+                      notesEditingController: notesTextController,
+                      groupNameEditingController: groupNameEditingController,
                       securedOnChangedCallback: (value) {
                         setState(() {
                           didAnythingChange = true;
@@ -267,6 +263,12 @@ class _EntryScreenState extends State<EntryScreen> {
                           notes = value;
                         });
                       },
+                      groupNameOnChangedCallback: (value) {
+                        setState(() {
+                          didAnythingChange = true;
+                          entryGroupName = value ?? entryGroupName;
+                        });
+                      },
                       secretMode: secretMode ?? false,
                     ),
                     const SizedBox(height: 24),
@@ -305,6 +307,17 @@ class _EntryScreenState extends State<EntryScreen> {
 
                                     bool success = false;
 
+                                    // see if this entry is trying to make a new group with an existing name
+                                    if (createNewGroup &&
+                                        instance.sortedEntryGroups
+                                            .where((element) =>
+                                                element.name == entryGroupName)
+                                            .isNotEmpty) {
+                                      Logger.warning(
+                                          "EntryScreen.save() entry is trying to make a new group but a group already exists with the name $entryGroupName");
+                                      return;
+                                    }
+
                                     // save any new tags
                                     List<String>? tagsTextsList;
                                     for (DailyEntryTag tag in tags) {
@@ -322,18 +335,6 @@ class _EntryScreenState extends State<EntryScreen> {
                                       }
                                     }
 
-                                    if (createNewGroup ?? false) {
-                                      // create new EntryGroup
-                                      EntryGroup newGroup = EntryGroup(
-                                          name: EntryGroup.defaultId, id: -1);
-                                      assert(newGroup.id != -1,
-                                          "Creating a new EntryGroup should override the given id");
-                                      success = await instance
-                                          .addEntryGroup(newGroup);
-                                      entryGroupId =
-                                          EntryGroup.generateId(newGroup.id);
-                                    }
-
                                     // save current entry
                                     DailyEntry newEntry = DailyEntry(
                                       epochDate: epochDate,
@@ -343,7 +344,7 @@ class _EntryScreenState extends State<EntryScreen> {
                                       pallor: pallor,
                                       tags: tags,
                                       notes: notes,
-                                      entryGroupId: entryGroupId,
+                                      entryGroupName: entryGroupName,
                                     );
 
                                     success =
@@ -353,6 +354,7 @@ class _EntryScreenState extends State<EntryScreen> {
                                       setState(() {
                                         loaded = false;
                                         editingMode = false;
+                                        createNewGroup = false;
                                         didAnythingChange = false;
                                       });
                                     } else {
