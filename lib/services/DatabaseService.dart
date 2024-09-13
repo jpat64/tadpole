@@ -31,13 +31,14 @@ class DatabaseService {
      */
     // await Hive.deleteBoxFromDisk(MOONBASE_DAILY_ENTRIES);
     // await Hive.deleteBoxFromDisk(MOONBASE_DAILY_ENTRY_TAGS);
-    await Hive.deleteBoxFromDisk(MOONBASE_ENTRY_GROUPS);
+    // await Hive.deleteBoxFromDisk(MOONBASE_ENTRY_GROUPS);
 
     _dailyEntryBox = await Hive.openBox<DailyEntry>(MOONBASE_DAILY_ENTRIES);
     _dailyEntryTagBox =
         await Hive.openBox<DailyEntryTag>(MOONBASE_DAILY_ENTRY_TAGS);
     _styleThemeBox = await Hive.openBox<StyleTheme>(MOONBASE_STYLETHEMES);
-    _entryGroupBox = await Hive.openBox<EntryGroup>(MOONBASE_ENTRY_GROUPS);
+    _entryGroupBox = await Hive.openBox<EntryGroup>(MOONBASE_ENTRY_GROUPS,
+        crashRecovery: false);
   }
 
   static Future<void> initialize() async {
@@ -142,6 +143,8 @@ class DatabaseService {
 
   DailyEntry? getDailyEntry(int epochDate) =>
       _dailyEntryBox.get(DailyEntry.generateId(epochDate));
+
+  DailyEntry? getDailyEntryById(String entryId) => _dailyEntryBox.get(entryId);
 
   Iterable<DailyEntry> get dailyEntries => _dailyEntryBox.values;
 
@@ -281,77 +284,78 @@ class DatabaseService {
   Future<bool> lockTheme(String name) async => await _setThemeLock(name, false);
 
   //////// ENTRY GROUPS
+  List<EntryGroup> get entryGroups => _entryGroupBox.values.toList();
 
-  // automatically sorts by highest value of epochDate of entry contained within group
-  List<EntryGroup> get entryGroups => _entryGroupBox.values.toList()
-    ..sort((element, other) =>
-        other.highestEpochDate.compareTo(element.highestEpochDate));
+  EntryGroup? getEntryGroupById(String id) => _entryGroupBox.get(id);
 
-  EntryGroup get mostRecentEntryGroup => entryGroups.first;
-
-  EntryGroup? getEntryGroup(int id) =>
-      _entryGroupBox.get(EntryGroup.generateId(id));
-
-  EntryGroup? findGroupWithEntry(DailyEntry entry) => _entryGroupBox.values
-      .where((element) => element.entries
-          .map<int>((subelement) => subelement.epochDate)
-          .contains(entry.epochDate))
+  EntryGroup? getEntryGroupByName(String name) => _entryGroupBox.values
+      .where((element) => element.name == name)
       .firstOrNull;
 
-  EntryGroup? findPreviousEntryGroup(int lowestEpochDate) =>
-      (_entryGroupBox.values
-              .where((element) => element.highestEpochDate < lowestEpochDate)
-              .toList()
-            ..sort((EntryGroup element, EntryGroup other) =>
-                element.highestEpochDate.compareTo(other.highestEpochDate)))
-          .lastOrNull;
+  List<DailyEntry> getEntriesForGroup(String id) => _dailyEntryBox.values
+      .where((element) => element.entryGroupId == id)
+      .toList();
 
-  EntryGroup? findNextEntryGroup(int highestEpochDate) => (_entryGroupBox.values
-          .where((element) => element.lowestEpochDate > highestEpochDate)
-          .toList()
-        ..sort((EntryGroup element, EntryGroup other) =>
-            other.lowestEpochDate.compareTo(element.lowestEpochDate)))
-      .lastOrNull;
-
-  Future<bool> createEntryGroup(String name, List<DailyEntry> entries) async {
+  Future<bool> addEntryGroup(EntryGroup group) async {
     try {
-      EntryGroup group = EntryGroup(name: name, entries: entries);
       await _entryGroupBox.put(EntryGroup.generateId(group.id), group);
       return true;
     } catch (e) {
-      Logger.warning("createEntryGroup exception - $e");
+      Logger.warning(e.toString());
       return false;
     }
   }
 
-  Future<bool> updateEntryGroup(EntryGroup group) async {
-    try {
-      await _entryGroupBox.put(EntryGroup.generateId(group.id), group);
-      return true;
-    } catch (e) {
-      Logger.warning("updateEntryGroup exception - $e");
-      return false;
+  List<EntryGroup> get _sortedEntryGroups => (_entryGroupBox.values.toList()
+    ..sort(
+      (element, other) =>
+          element.last.epochDate.compareTo(other.last.epochDate),
+    ));
+
+  EntryGroup get mostRecentEntryGroup {
+    if (_entryGroupBox.values.isEmpty) {
+      return EntryGroup(id: -1, name: EntryGroup.defaultId);
+    } else {
+      return _sortedEntryGroups.last;
     }
+  }
+
+  EntryGroup? getPreviousEntryGroup(EntryGroup group) {
+    int index =
+        _sortedEntryGroups.indexWhere((element) => element.id == group.id);
+    if (index - 1 >= 0) {
+      return _sortedEntryGroups[index - 1];
+    }
+    return null;
+  }
+
+  EntryGroup? getNextEntryGroup(EntryGroup group) {
+    int index =
+        _sortedEntryGroups.indexWhere((element) => element.id == group.id);
+    if (index + 1 < _sortedEntryGroups.length) {
+      return _sortedEntryGroups[index + 1];
+    }
+    return null;
   }
 
   Future<bool> deleteEntryGroup(EntryGroup group) async {
-    EntryGroup? destinationEntryGroup =
-        findPreviousEntryGroup(group.lowestEpochDate);
-    destinationEntryGroup ??= findNextEntryGroup(group.highestEpochDate);
-    destinationEntryGroup ??= mostRecentEntryGroup;
-    if (group.id == destinationEntryGroup.id) {
-      destinationEntryGroup =
-          EntryGroup(entries: [], name: EntryGroup.defaultId);
-    }
+    List<DailyEntry> abandonedEntries =
+        getEntriesForGroup(EntryGroup.generateId(group.id));
+    EntryGroup destinationGroup = getPreviousEntryGroup(group) ??
+        getNextEntryGroup(group) ??
+        EntryGroup(id: -1, name: EntryGroup.defaultId);
 
-    destinationEntryGroup.entries.addAll(group.entries);
     try {
-      await _entryGroupBox.put(EntryGroup.generateId(destinationEntryGroup.id),
-          destinationEntryGroup);
+      bool success = true;
+      for (DailyEntry abandonedEntry in abandonedEntries) {
+        abandonedEntry.entryGroupId =
+            EntryGroup.generateId(destinationGroup.id);
+        success = success || await instance.addDailyEntry(abandonedEntry);
+      }
       await _entryGroupBox.delete(EntryGroup.generateId(group.id));
-      return true;
+      return success;
     } catch (e) {
-      Logger.warning("deleteEntryGroup() exception - $e");
+      Logger.warning(e.toString());
       return false;
     }
   }

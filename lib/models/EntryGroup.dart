@@ -11,13 +11,10 @@ class EntryGroup {
   @HiveField(0, defaultValue: "0001")
   String name;
 
-  @HiveField(1, defaultValue: <DailyEntry>[])
-  List<DailyEntry> entries;
+  @HiveField(1, defaultValue: -1)
+  int id;
 
-  @HiveField(2, defaultValue: -1)
-  late int id;
-
-  EntryGroup({required this.name, required this.entries}) {
+  EntryGroup({required this.name, required this.id}) {
     List<EntryGroup> entryGroups = DatabaseService.instance.entryGroups;
     while (entryGroups
         .map<int>((element) => element.id)
@@ -30,22 +27,23 @@ class EntryGroup {
   static int entryGroupsCount = 0;
 
   static String generateId(int id) {
-    return "EG-$id";
+    return "EG$id";
   }
 
-  static const String defaultId = "EG-0001";
+  static const String defaultId = "EG0001";
 
-  // what an awesome one-liner
-  List<int> get _sortedEpochDates => entries.isNotEmpty
-      ? (entries.map<int>((element) => element.epochDate).toList()..sort())
-      : [0];
+  List<DailyEntry> get sortedEntries => (DatabaseService.instance
+          .getEntriesForGroup(generateId(id))
+        ..sort(
+            (element, other) => element.epochDate.compareTo(other.epochDate)))
+      .toList();
 
-  int get highestEpochDate => _sortedEpochDates.last;
+  DailyEntry get first => sortedEntries.first;
 
-  int get lowestEpochDate => _sortedEpochDates.first;
+  DailyEntry get last => sortedEntries.last;
 
   @override
   String toString() {
-    return "EntryGroup: id $id, name $name, entries [$entries]";
+    return "EntryGroup: id $id, name $name";
   }
 }

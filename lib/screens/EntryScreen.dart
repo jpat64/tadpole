@@ -43,6 +43,7 @@ class _EntryScreenState extends State<EntryScreen> {
   late int points;
   late int pallor;
   late List<DailyEntryTag> tags;
+  late String entryGroupId;
 
   Palette? palette;
   bool? secretMode;
@@ -86,6 +87,7 @@ class _EntryScreenState extends State<EntryScreen> {
         notes = "";
         notesTextController.text = "";
         createNewGroup = false;
+        entryGroupId = EntryGroup.defaultId;
       } else {
         secured = relevantEntry.secured ?? false;
         current = relevantEntry.current;
@@ -94,14 +96,12 @@ class _EntryScreenState extends State<EntryScreen> {
         tags = relevantEntry.tags ?? <DailyEntryTag>[];
         notes = relevantEntry.notes ?? "";
         notesTextController.text = notes;
-        createNewGroup = (instance.findGroupWithEntry(relevantEntry)?.entries
-                  ?..sort(
-                    (element, other) =>
-                        element.epochDate.compareTo(other.epochDate),
-                  ))
+        createNewGroup = (instance
+                .getEntryGroupById(relevantEntry.entryGroupId)
                 ?.first
-                .epochDate ==
+                .epochDate) ==
             relevantEntry.epochDate;
+        entryGroupId = relevantEntry.entryGroupId;
       }
     });
   }
@@ -322,6 +322,18 @@ class _EntryScreenState extends State<EntryScreen> {
                                       }
                                     }
 
+                                    if (createNewGroup ?? false) {
+                                      // create new EntryGroup
+                                      EntryGroup newGroup = EntryGroup(
+                                          name: EntryGroup.defaultId, id: -1);
+                                      assert(newGroup.id != -1,
+                                          "Creating a new EntryGroup should override the given id");
+                                      success = await instance
+                                          .addEntryGroup(newGroup);
+                                      entryGroupId =
+                                          EntryGroup.generateId(newGroup.id);
+                                    }
+
                                     // save current entry
                                     DailyEntry newEntry = DailyEntry(
                                       epochDate: epochDate,
@@ -331,43 +343,11 @@ class _EntryScreenState extends State<EntryScreen> {
                                       pallor: pallor,
                                       tags: tags,
                                       notes: notes,
-                                      entryGroupId: EntryGroup.defaultId,
+                                      entryGroupId: entryGroupId,
                                     );
 
                                     success =
                                         await instance.addDailyEntry(newEntry);
-
-                                    if (createNewGroup ?? false) {
-                                      // create new EntryGroup
-                                      success = await instance.createEntryGroup(
-                                          EntryGroup.defaultId, [newEntry]);
-                                    }
-
-                                    if (!(createNewGroup ?? true)) {
-                                      // see if this entry is in an EntryGroup
-                                      EntryGroup? groupWithThisEntry =
-                                          instance.findGroupWithEntry(newEntry);
-                                      groupWithThisEntry ??=
-                                          instance.mostRecentEntryGroup;
-
-                                      // remove duplicates
-                                      if (groupWithThisEntry.entries
-                                          .map<int>(
-                                              (element) => element.epochDate)
-                                          .contains(newEntry.epochDate)) {
-                                        groupWithThisEntry.entries.removeWhere(
-                                            (element) =>
-                                                element.epochDate ==
-                                                newEntry.epochDate);
-                                      }
-
-                                      // writes new entry
-                                      groupWithThisEntry.entries.add(newEntry);
-
-                                      // updates on backend
-                                      instance
-                                          .updateEntryGroup(groupWithThisEntry);
-                                    }
 
                                     if (success) {
                                       setState(() {

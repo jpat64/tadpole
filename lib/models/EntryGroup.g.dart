@@ -18,19 +18,17 @@ class EntryGroupAdapter extends TypeAdapter<EntryGroup> {
     };
     return EntryGroup(
       name: fields[0] == null ? '0001' : fields[0] as String,
-      entries: fields[1] == null ? [] : (fields[1] as List).cast<DailyEntry>(),
-    )..id = fields[2] == null ? -1 : fields[2] as int;
+      id: fields[1] == null ? -1 : fields[1] as int,
+    );
   }
 
   @override
   void write(BinaryWriter writer, EntryGroup obj) {
     writer
-      ..writeByte(3)
+      ..writeByte(2)
       ..writeByte(0)
       ..write(obj.name)
       ..writeByte(1)
-      ..write(obj.entries)
-      ..writeByte(2)
       ..write(obj.id);
   }
 

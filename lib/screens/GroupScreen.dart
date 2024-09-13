@@ -6,6 +6,7 @@ import 'package:moonbase/components/LoadingWidget.dart';
 import 'package:moonbase/components/MoonbaseBottomBar.dart';
 import 'package:moonbase/components/MoonbaseEntryGroupCard.dart';
 import 'package:moonbase/models/EntryGroup.dart';
+import 'package:moonbase/models/DailyEntry.dart';
 import 'package:moonbase/services/DatabaseService.dart';
 import 'package:moonbase/services/Logger.dart';
 import 'package:moonbase/services/SharedPreferencesService.dart';
@@ -33,6 +34,7 @@ class _GroupScreenState extends State<GroupScreen> {
 
   TextEditingController nameTextController = TextEditingController();
   EntryGroup? group;
+  List<DailyEntry>? entries;
 
   Palette? palette;
   bool? secretMode;
@@ -50,20 +52,23 @@ class _GroupScreenState extends State<GroupScreen> {
 
   void loadEntryGroup() {
     DatabaseService instance = DatabaseService.instance;
-    EntryGroup? relevantEntryGroup = instance.getEntryGroup(widget.groupId);
+    EntryGroup? relevantEntryGroup =
+        instance.getEntryGroupById(EntryGroup.generateId(widget.groupId));
     relevantEntryGroup ??= instance.mostRecentEntryGroup;
+    List<DailyEntry>? relevantEntries =
+        instance.getEntriesForGroup(EntryGroup.generateId(widget.groupId));
     setState(() {
       group = relevantEntryGroup!;
       nameTextController.text = group!.name;
+      entries = relevantEntries;
     });
   }
 
   void loadAdjacentEntryGroups() {
     if (group != null) {
       DatabaseService instance = DatabaseService.instance;
-      EntryGroup? previous =
-          instance.findPreviousEntryGroup(group!.lowestEpochDate);
-      EntryGroup? next = instance.findNextEntryGroup(group!.highestEpochDate);
+      EntryGroup? previous = instance.getPreviousEntryGroup(group!);
+      EntryGroup? next = instance.getNextEntryGroup(group!);
       setState(() {
         previousId = previous?.id;
         nextId = next?.id;
@@ -157,7 +162,7 @@ class _GroupScreenState extends State<GroupScreen> {
                           palette: palette ?? Palette.basic,
                           entryGroupNameController: nameTextController,
                           entryGroupName: group?.name ?? "groupName",
-                          entries: group?.entries ?? [],
+                          entries: entries ?? [],
                           onNameChangedCallback: (name) {
                             setState(() {
                               didAnythingChange = true;
@@ -166,23 +171,12 @@ class _GroupScreenState extends State<GroupScreen> {
                           },
                           onDailyEntryReassignCallback: (entry, newGroup) {
                             DatabaseService instance = DatabaseService.instance;
-                            if (newGroup.entries
-                                    .map<int>((element) => element.epochDate)
-                                    .contains(entry.epochDate) ==
-                                false) {
-                              newGroup.entries.add(entry);
-                              instance.updateEntryGroup(newGroup);
-                            }
-                            if (group != null &&
-                                group!.entries
-                                    .map<int>((element) => element.epochDate)
-                                    .contains(entry.epochDate)) {
-                              group!.entries.removeWhere((element) =>
-                                  element.epochDate == entry.epochDate);
-                              instance.updateEntryGroup(group!);
-                            }
+                            entry.entryGroupId =
+                                EntryGroup.generateId(newGroup.id);
+                            instance.addDailyEntry(entry);
                             setState(() {
-                              group = group;
+                              entries?.removeWhere((element) =>
+                                  element.epochDate == entry.epochDate);
                             });
                           },
                         ),

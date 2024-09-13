@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:moonbase/models/DailyEntry.dart';
 import 'package:moonbase/models/EntryGroup.dart';
 import 'package:moonbase/models/StyleTheme.dart';
 import 'package:moonbase/screens/CalendarScreen.dart';
@@ -69,22 +68,12 @@ class _InitializationScreenState extends State<InitializationScreen> {
 
   Future<bool> setupEntryGroups() async {
     DatabaseService instance = DatabaseService.instance;
-    if (instance.entryGroups.isEmpty) {
-      DatabaseService.instance
-          .createEntryGroup(EntryGroup.defaultId, <DailyEntry>[]);
+    bool success = true;
+    if (instance.getEntryGroupByName(EntryGroup.defaultId) == null) {
+      success = await DatabaseService.instance
+          .addEntryGroup(EntryGroup(id: -1, name: EntryGroup.defaultId));
       Logger.info("No EntryGroups existed, created a new EntryGroup");
     }
-    EntryGroup defaultEntryGroup = instance.mostRecentEntryGroup;
-    for (DailyEntry entry in instance.dailyEntries) {
-      if (entry.entryGroupId == EntryGroup.defaultId &&
-          (defaultEntryGroup.entries
-                  .map<int>((element) => element.epochDate)
-                  .contains(entry.epochDate) ==
-              false)) {
-        defaultEntryGroup.entries.add(entry);
-      }
-    }
-    bool success = await instance.updateEntryGroup(defaultEntryGroup);
     return success;
   }
 

@@ -24,7 +24,7 @@ class DailyEntryAdapter extends TypeAdapter<DailyEntry> {
       pallor: fields[4] as int,
       tags: (fields[5] as List?)?.cast<DailyEntryTag>(),
       secured: fields[6] as bool?,
-      entryGroupId: fields[7] == null ? 'EG-0001' : fields[7] as String,
+      entryGroupId: fields[7] == null ? 'EG0001' : fields[7] as String,
     );
   }
 
