@@ -112,6 +112,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
         appBar: AppBar(
+          iconTheme: palette?.iconTheme,
+          backgroundColor: palette?.background,
+          titleTextStyle: palette?.titleTextTheme,
           automaticallyImplyLeading: false,
           title: Container(
             padding: const EdgeInsets.all(16),

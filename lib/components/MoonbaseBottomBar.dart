@@ -52,16 +52,24 @@ class MoonbaseBottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return NavigationBar(
-        destinations: navBarItems.values.toList(),
-        selectedIndex: selectedIndex,
-        surfaceTintColor: palette.background,
-        indicatorColor: palette.splash,
-        onDestinationSelected: (value) {
-          String path = navBarItems.keys.toList()[value];
-          Map<String, String> parameters = defaultParameters(path);
-          context.pushNamed(navBarItems.keys.toList()[value],
-              pathParameters: parameters);
-        });
+    return NavigationBarTheme(
+        data: NavigationBarThemeData(
+          backgroundColor: palette.background,
+          indicatorColor: palette.splash,
+          labelTextStyle: MaterialStateProperty.resolveWith<TextStyle>(
+              (_) => TextStyle(color: palette.text)),
+          iconTheme: MaterialStateProperty.resolveWith<IconThemeData>(
+              (_) => IconThemeData(color: palette.text)),
+        ),
+        child: NavigationBar(
+            destinations: navBarItems.values.toList(),
+            selectedIndex: selectedIndex,
+            backgroundColor: palette.background,
+            onDestinationSelected: (value) {
+              String path = navBarItems.keys.toList()[value];
+              Map<String, String> parameters = defaultParameters(path);
+              context.pushNamed(navBarItems.keys.toList()[value],
+                  pathParameters: parameters);
+            }));
   }
 }

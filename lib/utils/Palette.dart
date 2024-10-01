@@ -110,6 +110,9 @@ class Palette {
     Logger.warning("unable to find current palette $currentThemeName");
     return basic;
   }
+
+  IconThemeData get iconTheme => IconThemeData(color: text);
+  TextStyle get titleTextTheme => TextStyle(color: text, fontSize: 24);
 }
 
 class Colors {

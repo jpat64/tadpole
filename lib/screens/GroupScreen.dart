@@ -90,6 +90,9 @@ class _GroupScreenState extends State<GroupScreen> {
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
         appBar: AppBar(
+          iconTheme: palette?.iconTheme,
+          backgroundColor: palette?.background,
+          titleTextStyle: palette?.titleTextTheme,
           automaticallyImplyLeading: false,
           title: Container(
             padding: const EdgeInsets.all(16),
@@ -110,9 +113,7 @@ class _GroupScreenState extends State<GroupScreen> {
                               }
                             : null)),
                 const Spacer(),
-                Text(
-                  group.name,
-                ),
+                Text(group.name, style: const TextStyle(fontFamily: "Freeman")),
                 const Spacer(),
                 Visibility(
                   visible: nextName != null,
