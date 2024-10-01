@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:moonbase/screens/CalendarScreen.dart';
 import 'package:moonbase/services/DatabaseService.dart';
 import 'package:moonbase/services/Logger.dart';
+import 'package:moonbase/services/PasswordCheckerService.dart';
 import 'package:moonbase/services/SharedPreferencesService.dart';
 import 'package:moonbase/utils/DateTimeUtils.dart';
 import 'package:moonbase/utils/Palette.dart';
@@ -26,6 +27,8 @@ class _PasswordEntryScreenState extends State<PasswordEntryScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController textController = TextEditingController();
 
+  String? unlockKey;
+
   @override
   void initState() {
     super.initState();
@@ -33,6 +36,15 @@ class _PasswordEntryScreenState extends State<PasswordEntryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((timestamp) async {
+      if (unlockKey == null) {
+        String foundUnlockKey = await SharedPreferencesService.unlockKey;
+        setState(() {
+          unlockKey = foundUnlockKey;
+        });
+      }
+    });
+
     return GestureDetector(
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
@@ -73,6 +85,8 @@ class _PasswordEntryScreenState extends State<PasswordEntryScreen> {
                           style: TextStyle(
                               fontSize: 14, color: Palette.basic.text),
                         ),
+                        if (widget.unlock != "secret")
+                          Text("As a hint, your special key is $unlockKey"),
                         SizedBox(height: constraints.biggest.height * 0.05),
                         TextFormField(
                           controller: textController,
@@ -102,28 +116,34 @@ class _PasswordEntryScreenState extends State<PasswordEntryScreen> {
                                 foregroundColor: Palette.basic.background),
                             onPressed: () async {
                               if (_formKey.currentState?.validate() ?? false) {
-                                Logger.info(
-                                    "PasswordEntryScreen .. unlock() success!");
-                                Fluttertoast.showToast(
-                                    msg:
-                                        "${widget.unlock.capitalize()} Mode unlocked!",
-                                    backgroundColor: Palette.basic.accent,
-                                    textColor: Palette.basic.text);
-                                DatabaseService instance =
-                                    DatabaseService.instance;
-                                bool success =
-                                    await instance.unlockTheme(widget.unlock);
-                                if (success) {
-                                  if (widget.unlock == "secret") {
-                                    SharedPreferencesService.setSecretModeFlag(
-                                        true);
-                                  }
-                                  if (context.mounted) {
-                                    context.goNamed(CalendarScreen.name,
-                                        pathParameters: {
-                                          "epochDate":
-                                              "${DateTimeUtils.epochDays(DateUtils.addDaysToDate(DateTime.now(), 0))}"
-                                        });
+                                bool passwordWasCorrect =
+                                    await PasswordCheckerService()
+                                        .unlockStyleTheme(
+                                            widget.unlock, textController.text);
+                                if (passwordWasCorrect) {
+                                  Logger.info(
+                                      "PasswordEntryScreen .. unlock() success!");
+                                  Fluttertoast.showToast(
+                                      msg:
+                                          "${widget.unlock.capitalize()} Mode unlocked!",
+                                      backgroundColor: Palette.basic.accent,
+                                      textColor: Palette.basic.text);
+                                  DatabaseService instance =
+                                      DatabaseService.instance;
+                                  bool success =
+                                      await instance.unlockTheme(widget.unlock);
+                                  if (success) {
+                                    if (widget.unlock == "secret") {
+                                      SharedPreferencesService
+                                          .setSecretModeFlag(true);
+                                    }
+                                    if (context.mounted) {
+                                      context.goNamed(CalendarScreen.name,
+                                          pathParameters: {
+                                            "epochDate":
+                                                "${DateTimeUtils.epochDays(DateUtils.addDaysToDate(DateTime.now(), 0))}"
+                                          });
+                                    }
                                   }
                                 } else {
                                   Fluttertoast.showToast(

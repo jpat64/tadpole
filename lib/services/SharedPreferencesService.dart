@@ -1,4 +1,5 @@
 // ignore_for_file: file_names, constant_identifier_names
+import 'package:moonbase/services/KeyGeneratorService.dart';
 import 'package:moonbase/services/Logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -6,12 +7,14 @@ class SharedPreferencesService {
   static const String SELECTED_THEME_NAME = "moonbaseprefs-selected-theme-name";
   static const String FIRST_TIME_FLAG = "moonbaseprefs-first-time-flag";
   static const String SECRET_MODE_FLAG = "moonbaseprefs-secret-mode-flag";
+  static const String UNLOCK_KEY = "moonbaseprefs-unlock-key";
 
   static final Map<String, SharedPreferencesDataType> _nameToTypeMap = {
     SharedPreferencesService.SELECTED_THEME_NAME:
         SharedPreferencesDataType.string,
     SharedPreferencesService.SECRET_MODE_FLAG: SharedPreferencesDataType.bool,
     SharedPreferencesService.FIRST_TIME_FLAG: SharedPreferencesDataType.bool,
+    SharedPreferencesService.UNLOCK_KEY: SharedPreferencesDataType.string,
   };
 
   static Future<dynamic> _getValue(String valueName) async {
@@ -81,6 +84,14 @@ class SharedPreferencesService {
 
   static Future<bool> get firstTimeFlag async {
     return await _getValue(SharedPreferencesService.FIRST_TIME_FLAG);
+  }
+
+  static Future<void> resetUnlockKey() async {
+    await _setValue(UNLOCK_KEY, KeyGeneratorService.generateKey());
+  }
+
+  static Future<String> get unlockKey async {
+    return await _getValue(SharedPreferencesService.UNLOCK_KEY);
   }
 }
 

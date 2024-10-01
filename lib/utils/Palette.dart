@@ -84,9 +84,22 @@ class Palette {
         error: Colors.jasperRed,
       );
 
+  static Palette get princess => Palette(
+        background: Colors.royalPurple,
+        text: Colors.leadershipBlack,
+        primary: Colors.pompPurple,
+        secondary: Colors.pridePurple,
+        splash: Colors.regalRed,
+        accent: Colors.crownGold,
+        off: Colors.moonGray,
+        disabled: Colors.craterGray,
+        error: Colors.dangerYellow,
+      );
+
   static Map<String, Palette> get palettesByName => {
         "basic": basic,
         "froggy": froggy,
+        "princess": princess,
       };
 
   static Future<Palette> get currentPalette async {
@@ -119,4 +132,13 @@ class Colors {
   static Color salmonPink = const Color(0xfff4989c);
   static Color waterBlue = const Color(0xff6d96e3);
   static Color jasperRed = const Color(0xffde534b);
+
+  // princess palette colors
+  static Color royalPurple = const Color(0xfffcf7ff);
+  static Color leadershipBlack = const Color(0xff1e1721);
+  static Color pompPurple = const Color(0xff836096);
+  static Color pridePurple = const Color(0xffe1caed);
+  static Color regalRed = const Color(0xffe6456d);
+  static Color crownGold = const Color(0xfff3c141);
+  static Color dangerYellow = const Color(0xffced957);
 }

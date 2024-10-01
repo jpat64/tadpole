@@ -47,7 +47,7 @@ class DailyEntry implements Comparable {
     return "E$epochDate";
   }
 
-  static const String defaultEntryGroupName = "New Group";
+  static const String defaultEntryGroupName = "Unnamed";
 
   Map<String, dynamic> toJson() => {
         "id": id,

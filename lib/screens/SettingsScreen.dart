@@ -401,25 +401,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       child: const Text("Unlock Secret Mode"),
                     ),
                   ),
-                if (froggyModeUnlocked)
-                  ExpansionTile(
-                      title: const Text("Choose Theme"),
-                      initiallyExpanded: true,
-                      children: DatabaseService.instance.themes
-                          .where((element) => element.paletteName != 'secret')
-                          .map<Widget>((element) {
-                        Palette themePalette =
-                            Palette.palettesByName[element.paletteName] ??
-                                Palette.basic;
-                        return Container(
-                          decoration: BoxDecoration(
-                              border: Border.all(
-                                  color: themePalette.primary, width: 3)),
-                          child: ListTile(
-                            enabled: element.unlocked,
-                            textColor: themePalette.text,
-                            tileColor: themePalette.background,
-                            onTap: () async {
+                ExpansionTile(
+                    title: const Text("Choose Theme"),
+                    initiallyExpanded: true,
+                    children: DatabaseService.instance.themes
+                        .where((element) => element.paletteName != 'secret')
+                        .map<Widget>((element) {
+                      Palette themePalette =
+                          Palette.palettesByName[element.paletteName] ??
+                              Palette.basic;
+                      return Container(
+                        decoration: BoxDecoration(
+                            border: Border.all(
+                                color: themePalette.primary, width: 3)),
+                        child: ListTile(
+                          textColor: element.unlocked
+                              ? themePalette.text
+                              : themePalette.disabled,
+                          tileColor: themePalette.background,
+                          onTap: () async {
+                            if (element.unlocked) {
                               await SharedPreferencesService
                                   .setSelectedThemeName(element.paletteName);
                               setState(() {
@@ -427,33 +428,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               });
                               Fluttertoast.showToast(
                                   msg: "Theme will change next screen!");
-                            },
-                            title: Text(element.paletteName),
-                            trailing: SizedBox(
-                                width: constraints.biggest.width * 0.5,
-                                child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    children: themePalette.swatches
-                                        .map<Badge>((element) => Badge(
-                                              backgroundColor: element,
-                                              smallSize: 24,
-                                            ))
-                                        .toList())),
-                          ),
-                        );
-                      }).toList()),
-                if (!froggyModeUnlocked)
-                  SizedBox(
-                    width: constraints.biggest.width * 0.9,
-                    child: TextButton(
-                      style: TextButton.styleFrom(
-                          backgroundColor: palette?.primary,
-                          foregroundColor: palette?.background),
-                      onPressed: () => context.goNamed(PasswordEntryScreen.name,
-                          pathParameters: {"unlock": "froggy"}),
-                      child: const Text("Unlock Froggy Theme"),
-                    ),
-                  ),
+                            } else {
+                              context.pushNamed(PasswordEntryScreen.name,
+                                  pathParameters: {
+                                    "unlock": element.paletteName
+                                  });
+                            }
+                          },
+                          title: Text(element.paletteName),
+                          trailing: SizedBox(
+                              width: constraints.biggest.width * 0.5,
+                              child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: themePalette.swatches
+                                      .map<Badge>((element) => Badge(
+                                            backgroundColor: element,
+                                            smallSize: 24,
+                                          ))
+                                      .toList())),
+                        ),
+                      );
+                    }).toList()),
                 SizedBox(
                   width: constraints.biggest.width * 0.9,
                   child: TextButton(
@@ -463,6 +458,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     onPressed: () =>
                         context.goNamed(WelcomeSequenceScreen.name),
                     child: const Text("See Intro Again"),
+                  ),
+                ),
+                Divider(color: palette?.primary),
+                SizedBox(
+                  width: constraints.biggest.width * 0.9,
+                  child: TextButton(
+                    style: TextButton.styleFrom(
+                        backgroundColor: palette?.primary,
+                        foregroundColor: palette?.background),
+                    onPressed: () async {
+                      await SharedPreferencesService.setSelectedThemeName(
+                          "basic");
+                      for (StyleTheme theme
+                          in DatabaseService.instance.themes) {
+                        if (theme.paletteName != "basic") {
+                          await DatabaseService.instance
+                              .lockTheme(theme.paletteName);
+                        }
+                      }
+                    },
+                    child:
+                        const Text("Reset Unlocked Themes (and Secret Mode)"),
                   ),
                 ),
               ],

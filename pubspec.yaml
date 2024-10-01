@@ -39,6 +39,7 @@ flutter:
   assets:
     - assets/images/app icon/
     - assets/images/ui display/
+    - assets/passwords/filtered/
 
 flutter_launcher_icons:
   android: "launcher_icon"

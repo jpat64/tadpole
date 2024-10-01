@@ -6,6 +6,7 @@ import 'package:moonbase/models/StyleTheme.dart';
 import 'package:moonbase/screens/CalendarScreen.dart';
 import 'package:moonbase/screens/WelcomeSequenceScreen.dart';
 import 'package:moonbase/services/DatabaseService.dart';
+import 'package:moonbase/services/KeyGeneratorService.dart';
 import 'package:moonbase/services/Logger.dart';
 import 'package:moonbase/services/SharedPreferencesService.dart';
 import 'package:moonbase/utils/DateTimeUtils.dart';
@@ -39,6 +40,10 @@ class _InitializationScreenState extends State<InitializationScreen> {
       DatabaseService.instance
           .addTheme(StyleTheme(paletteName: 'froggy', unlocked: false));
     }
+    if (instance.getTheme('princess') == null) {
+      DatabaseService.instance
+          .addTheme(StyleTheme(paletteName: 'princess', unlocked: false));
+    }
     late bool firstTime;
     try {
       firstTime = await SharedPreferencesService.firstTimeFlag;
@@ -56,6 +61,17 @@ class _InitializationScreenState extends State<InitializationScreen> {
       await SharedPreferencesService.setSelectedThemeName("basic");
     }
     Logger.info("Startup selectedThemeName is $selectedThemeName");
+
+    late String unlockKey;
+    try {
+      unlockKey = await SharedPreferencesService.unlockKey;
+    } catch (e) {
+      unlockKey = "UN-SET";
+      await SharedPreferencesService.resetUnlockKey();
+    }
+    Logger.info(
+        "Startup unlockKey is $unlockKey (${KeyGeneratorService.decipherKey(unlockKey)})");
+
     if (firstTime) {
       return WelcomeSequenceScreen.name;
     } else {
