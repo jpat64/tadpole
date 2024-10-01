@@ -89,11 +89,11 @@ class Palette {
         text: Colors.leadershipBlack,
         primary: Colors.pompPurple,
         secondary: Colors.pridePurple,
-        splash: Colors.regalRed,
+        splash: Colors.jewelBlue,
         accent: Colors.crownGold,
         off: Colors.moonGray,
         disabled: Colors.craterGray,
-        error: Colors.dangerYellow,
+        error: Colors.regalRed,
       );
 
   static Map<String, Palette> get palettesByName => {
@@ -140,5 +140,5 @@ class Colors {
   static Color pridePurple = const Color(0xffe1caed);
   static Color regalRed = const Color(0xffe6456d);
   static Color crownGold = const Color(0xfff3c141);
-  static Color dangerYellow = const Color(0xffced957);
+  static Color jewelBlue = const Color(0xff87eded);
 }

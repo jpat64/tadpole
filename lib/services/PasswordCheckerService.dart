@@ -41,7 +41,7 @@ class PasswordCheckerService {
     int unlockKeyInt = KeyGeneratorService.decipherKey(unlockKey);
     // get the list of words
     List<String> words = (await rootBundle
-            .loadString("assets/passwords/filtered/filtered-cinderella.txt"))
+            .loadString("assets/passwords/filtered/filtered-$fileName.txt"))
         .trim()
         .split("\n")
         .map<String>(
