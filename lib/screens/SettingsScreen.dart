@@ -478,8 +478,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         }
                       }
                     },
-                    child:
-                        const Text("Reset Unlocked Themes (and Secret Mode)"),
+                    child: const Text("Reset All Unlocks"),
                   ),
                 ),
               ],

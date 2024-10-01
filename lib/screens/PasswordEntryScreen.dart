@@ -79,7 +79,7 @@ class _PasswordEntryScreenState extends State<PasswordEntryScreen> {
                           style: TextStyle(
                               fontSize: 26, color: Palette.basic.text),
                         ),
-                        SizedBox(height: constraints.biggest.height * 0.05),
+                        SizedBox(height: constraints.biggest.height * 0.01),
                         Text(
                           "Please enter an acceptable password related to the topic. If it fits, you've unlocked ${widget.unlock} mode!",
                           style: TextStyle(
@@ -87,7 +87,7 @@ class _PasswordEntryScreenState extends State<PasswordEntryScreen> {
                         ),
                         if (widget.unlock != "secret")
                           Text("As a hint, your special key is $unlockKey"),
-                        SizedBox(height: constraints.biggest.height * 0.05),
+                        SizedBox(height: constraints.biggest.height * 0.01),
                         TextFormField(
                           controller: textController,
                           decoration: InputDecoration(
@@ -176,6 +176,7 @@ class _PasswordEntryScreenState extends State<PasswordEntryScreen> {
                           ),
                         ),
                         const Spacer(),
+                        const SizedBox(height: 24),
                       ],
                     ),
                   ),
