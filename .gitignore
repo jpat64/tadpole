@@ -44,3 +44,4 @@ app.*.map.json
 
 # password-related raw data files
 /assets/passwords/filtered/*
+password_help.png
