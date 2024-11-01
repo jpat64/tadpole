@@ -175,11 +175,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           builder: (context) => Form(
                             key: _emailFormKey,
                             child: AlertDialog(
+                              backgroundColor: palette?.background,
                               content: ListTile(
                                 leading: const Icon(Icons.mail),
                                 title: const Text(
                                     "Send Data to which email address?"),
                                 subtitle: TextFormField(
+                                  decoration: InputDecoration(
+                                      border: const OutlineInputBorder(),
+                                      enabledBorder: const OutlineInputBorder(),
+                                      hintStyle:
+                                          TextStyle(color: palette?.disabled),
+                                      hintText: "email@address.co"),
                                   validator: (value) {
                                     if (value == null) {
                                       return "Please enter a valid email address.";
@@ -253,11 +260,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           builder: (context) => Form(
                             key: _importFormKey,
                             child: AlertDialog(
+                              backgroundColor: palette?.background,
                               content: ListTile(
                                 leading: const Icon(Icons.import_export),
                                 title: const Text(
                                     "Which File? Make sure it's saved to your device."),
                                 subtitle: TextFormField(
+                                  decoration: InputDecoration(
+                                      border: const OutlineInputBorder(),
+                                      enabledBorder: const OutlineInputBorder(),
+                                      hintStyle:
+                                          TextStyle(color: palette?.disabled),
+                                      hintText: "path/to/file.csv"),
                                   validator: (value) {
                                     if (value == null) {
                                       return "Please enter a valid file path.";
@@ -328,6 +342,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         showDialog(
                           context: context,
                           builder: (context) => AlertDialog(
+                            backgroundColor: palette?.background,
                             content: const ListTile(
                               leading: Icon(Icons.warning),
                               title: Text(
@@ -471,15 +486,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         backgroundColor: palette?.primary,
                         foregroundColor: palette?.background),
                     onPressed: () async {
-                      await SharedPreferencesService.setSelectedThemeName(
-                          "basic");
-                      for (StyleTheme theme
-                          in DatabaseService.instance.themes) {
-                        if (theme.paletteName != "basic") {
-                          await DatabaseService.instance
-                              .lockTheme(theme.paletteName);
-                        }
-                      }
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          backgroundColor: palette?.background,
+                          content: const ListTile(
+                            leading: Icon(Icons.warning),
+                            title: Text(
+                                "Are you sure you want to reset your unlocks?"),
+                            subtitle: Text(
+                                "You would have to find the right passwords for any themes you've unlocked already."),
+                          ),
+                          actions: [
+                            TextButton(
+                              style: TextButton.styleFrom(
+                                  backgroundColor: palette?.background,
+                                  foregroundColor: palette?.text),
+                              onPressed: () {
+                                context.pop();
+                              },
+                              child: const Text("Cancel"),
+                            ),
+                            TextButton(
+                              style: TextButton.styleFrom(
+                                  backgroundColor: palette?.error,
+                                  foregroundColor: palette?.text),
+                              onPressed: () async {
+                                await SharedPreferencesService
+                                    .setSelectedThemeName("basic");
+                                for (StyleTheme theme
+                                    in DatabaseService.instance.themes) {
+                                  if (theme.paletteName != "basic") {
+                                    await DatabaseService.instance
+                                        .lockTheme(theme.paletteName);
+                                  }
+                                }
+                              },
+                              child: const Text("Reset"),
+                            ),
+                          ],
+                        ),
+                      );
                     },
                     child: const Text("Reset All Unlocks"),
                   ),

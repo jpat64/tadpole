@@ -20,6 +20,7 @@ class Moonbase extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
+      debugShowCheckedModeBanner: false,
       title: 'Moonbase',
       theme: ThemeData(
         colorScheme: Palette.basic.lightTheme,
@@ -27,7 +28,6 @@ class Moonbase extends StatelessWidget {
         outlinedButtonTheme: MoonbaseTheme.outlineButtonTheme,
         textTheme: MoonbaseTheme.textTheme,
       ),
-      darkTheme: ThemeData(colorScheme: Palette.basic.darkTheme),
       routerConfig: router,
     );
   }

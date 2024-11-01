@@ -58,7 +58,8 @@ class PasswordCheckerService {
 
   Future<bool> _unlockSecretMode(String givenPassword) async {
     // the password for Secret Mode is not really secret, just as an example
-    if (['period', 'menstruation'].contains(givenPassword.toLowerCase())) {
+    if (['super-secret', 'period', 'menstruation']
+        .contains(givenPassword.toLowerCase())) {
       instance.unlockTheme('secret');
       return true;
     }
