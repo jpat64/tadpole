@@ -1,4 +1,4 @@
-package com.example.moonbase
+package com.moonbase.android.moonbase
 
 import io.flutter.embedding.android.FlutterActivity
 
